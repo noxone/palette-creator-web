@@ -11,11 +11,11 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") // new repository here
 }
 
-//group = "my.fritz2.app"
-//version = "0.0.1-SNAPSHOT"
+group = "org.olafneumann.palette"
+version = "1.0-SNAPSHOT"
 
 kotlin {
-    jvm()
+    // jvm()
     js(IR) {
         browser()
     }.binaries.executable()
@@ -27,10 +27,10 @@ kotlin {
                 // implementation(libs.fritz2.headless) // optional
             }
         }
-        val jvmMain by getting {
+        /*val jvmMain by getting {
             dependencies {
             }
-        }
+        }*/
         val jsMain by getting {
             dependencies {
                 // tailwind

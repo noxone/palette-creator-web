@@ -1,11 +1,10 @@
-[![fritz2](https://www.fritz2.dev/img/fritz2_header.png)](https://www.fritz2.dev/)
+# Palette Creator
 
-# A getting-started-template for fritz2-apps with tailwindcss.
+This projects aims at making it *really* easy for everybody to create a nice looking color palette that can be included
+in nearly any development project.
 
-template project to quickly set up a fritz2-app using [tailwindcss.com](https://tailwindcss.com/) for styling.
+## Motivation
 
-Please have a look at [fritz2's documentation](https://fritz2.dev/docs) 
-or the [examples](https://examples.fritz2.dev/) to learn, how to use it.
-
-If you have any problems with this template, 
-please open an issue at [fritz2](https://github.com/jwstegemann/fritz2/issues).
+Well, I'm not good at colors... but I can write code. And if I want to create some nice looking UI in my
+projects, I might lack the knowledge of how to create good colors.  
+That's why I created this project, to simplify this tasks - especially for myself.

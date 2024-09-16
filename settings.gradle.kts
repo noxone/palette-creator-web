@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "fritz2-tailwind-template"
+rootProject.name = "palette-creator"
