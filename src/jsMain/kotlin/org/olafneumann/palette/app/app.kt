@@ -8,6 +8,7 @@ import dev.fritz2.core.Window
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.render
+import dev.fritz2.core.title
 import dev.fritz2.core.type
 import dev.fritz2.core.value
 import dev.fritz2.core.values
@@ -35,12 +36,22 @@ fun main() {
             width / COLOR_COUNT_DIV
         }
     }
-    val colorStore = object : RootStore<PaletteModel>(PaletteModel(shadeCount = 7, primaryColor = Color.randomPrimary()), job = Job()) {
+    val colorStore = object :
+        RootStore<PaletteModel>(
+            PaletteModel(
+                shadeCount = 7,
+                primaryColor = Color.randomPrimary(),
+                neutralColor = Color.randomNeutral(),
+            ),
+            job = Job()) {
         val setPrimaryColor: Handler<String> = handle { currentState: PaletteModel, action: String ->
             Color.Hex(action)?.let { currentState.setPrimaryColor(primaryColor = it) } ?: currentState
         }
         val randomizePrimaryColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
             currentState.setPrimaryColor(primaryColor = Color.randomPrimary())
+        }
+        val randomizeNeutralColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
+            currentState.copy(neutralColor = Color.randomNeutral())
         }
     }
 
@@ -60,7 +71,16 @@ fun main() {
                     +"Palette Creator"
                 }
                 colorCountStore.data.render { colorCount ->
-                    colorList(width = 2.5, height = 2.8, colors = (0..<colorCount).map { Color.HSLuv(h = 360.0 / colorCount * it, s = 0.3 + 0.65 / colorCount * it, l = 0.7) })
+                    colorList(
+                        width = 2.5,
+                        height = 2.8,
+                        colors = (0..<colorCount).map {
+                            Color.HSLuv(
+                                h = 290.0 / colorCount * it,
+                                s = 0.1 + 0.85 / colorCount * it,
+                                l = 0.7
+                            )
+                        })
                 }
             }
             div {
@@ -80,25 +100,25 @@ fun main() {
                 title = "Primary Color",
                 instruction = "Please pick or enter the main color you want to use for your application.",
                 explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
-                resultContent = {
+                secondContent = {
                     p {
                         +"The currently selected color would bring the first set of nice shades for your palette:"
                     }
                     div {
                         colorStore.data.render(into = this) {
                             className("border rounded-lg p-2 mt-2 shadow-inner")
-                            inlineStyle("max-width:${it.shadeCount * 3.1}rem;")
+                            inlineStyle("max-width:46rem;")
 
-                            colorList(width = 2.5, height = 2.5, it.shadedPrimaryColors.map { it.color })
+                            colorList(width = 2.5, height = 2.5, it.shadedPrimaryColors.map { sc -> sc.color })
                         }
                     }
                 }
-                ) {
+            ) {
                 vStack {
                     div {
-                        className("grid grid-cols-4")
+                        className("grid grid-cols-4 lg:grid-cols-6")
                         hStack {
-                            className("col-span-3")
+                            className("col-span-3 lg:col-span-4")
 
                             div {
                                 className("inline-flex rounded-md shadow-sm")
@@ -134,37 +154,80 @@ fun main() {
                                     clicks handledBy colorStore.randomizePrimaryColor
                                 }
                             }
-
-                            /*vStack {
-                                div { +"Color picker" }
-                                input {
-                                    type("color")
-                                    value(colorStore.data.map { it.color.Hex() })
-                                    changes.values() handledBy colorStore.setPrimaryColor
-                                }
-                            }
-                            vStack {
-                                div { +"Hex:" }
-                                div { colorStore.data.render(this) { +it.color.Hex() } }
-                            }*/
                         }
-                        colorStore.data.render {
-                            val useBrightTextColor = it.primaryColor.HSLuv().l < 0.5
-                            colorBox(color = it.primaryColor, textColor = if (useBrightTextColor) it.shadedPrimaryColors.first().color else it.shadedPrimaryColors.last().color)
+                        div {
+                            className("col-span-1 lg:col-span-2 w-full h-full")
+                            colorStore.data.render(into = this) {
+                                val useBrightTextColor = it.primaryColor.HSLuv().l < 0.65
+                                colorBox(
+                                    color = it.primaryColor,
+                                    textColor = if (useBrightTextColor) it.shadedPrimaryColors.first().color else it.shadedPrimaryColors.last().color
+                                )
+                            }
                         }
                     }
-
-                    br {  }
                 }
             }
 
             section(
                 number = 2,
                 title = "Neutral Color",
-                explanation = """Next, we will select a quite neutral color for the background and foreground.
-                        True black or white often looks strange to the eye, so we should go with some other very dark or light colors."""
+                instruction = "Choose a neutral color. Shades of this might be used for backgrounds, texts or borders.",
+                explanation = """True black or white often looks strange to the eye, so we should go with some other very dark or light colors.
+                    |There is no real science in choosing the neutral color. It should just fit to your primary color.
+                """.trimMargin(),
+                secondContent = {
+                    p {
+                        +"The neutral shades would look like this:"
+                    }
+                    div {
+                        colorStore.data.render(into = this) {
+                            className("border rounded-lg p-2 mt-2 shadow-inner")
+                            inlineStyle("max-width:46rem;")
+
+                            colorList(width = 2.5, height = 2.5, it.shadedNeutralColors.map { sc -> sc.color })
+                        }
+                    }
+                }
             ) {
-                +"bla"
+                vStack {
+                    div {
+                        className("grid grid-cols-4 lg:grid-cols-6")
+                        hStack {
+                            className("col-span-3 lg:col-span-4")
+
+                            div {
+                                className("inline-flex rounded-md shadow-sm")
+                                button {
+                                    type("button")
+                                    className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    +"abc"
+                                }
+                                button {
+                                    type("button")
+                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    +"Enter hex RGB"
+                                }
+                                button {
+                                    type("button")
+                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    +"Randomize Color"
+                                    clicks handledBy colorStore.randomizeNeutralColor
+                                }
+                            }
+                        }
+                        div {
+                            className("col-span-1 lg:col-span-2 w-full h-full")
+                            colorStore.data.render(into = this) {
+                                //val useBrightTextColor = it.neutralColor.HSLuv().l < 0.65
+                                colorBox(
+                                    color = it.neutralColor,
+                                    textColor = it.shadedNeutralColors.first().color
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             section(
@@ -199,13 +262,14 @@ private fun RenderContext.section(
     title: String,
     instruction: String? = null,
     explanation: String? = null,
-    resultContent: (HtmlTag<HTMLDivElement>.() -> Unit)? = null,
-    content: HtmlTag<HTMLDivElement>.() -> Unit) =
+    secondContent: (HtmlTag<HTMLDivElement>.() -> Unit)? = null,
+    content: HtmlTag<HTMLDivElement>.() -> Unit
+) =
     boxy {
         div {
             className("hidden lg:block")
             div {
-                className("on-title-font font-semibold text-7xl antialiased text-slate-500 w-full text-center lining-nums")
+                className("on-title-font text-7xl antialiased text-slate-500 w-full text-center lining-nums mt-5")
                 +number.toString()
             }
         }
@@ -220,16 +284,16 @@ private fun RenderContext.section(
                 instruction?.let { p { +it } }
             }
 
-            content()
-
             div {
-                className("text-xs text-slate-500")
+                className("text-sm text-slate-500 mb-2")
                 explanation?.split("\n")?.forEach {
                     p { +it }
                 }
             }
+
+            content()
         }
-        resultContent?.let {
+        secondContent?.let {
             div {
                 className("border-t col-span-12 lg:col-start-2 lg:col-span-11 mt-3 pt-3")
                 it()
@@ -269,11 +333,12 @@ private fun RenderContext.colorBox(width: Double, height: Double, color: Color) 
     div {
         className("flex-auto rounded border border-slate-200 shadow-inner mx-1")
         inlineStyle("background-color: ${color.Hex()};width: ${width}rem;height: ${height}rem;")
+        title(color.Hex())
     }
 
 private fun RenderContext.colorBox(color: Color, textColor: Color? = null) =
     div {
-        className("on-title-font rounded-lg shadow-xl font-thin")
+        className("on-title-font rounded-lg shadow-xl font-thin h-full")
         div {
             className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center")
             inlineStyle("background-color: ${color.Hex()};${textColor?.let { "color:${it.Hex()};" } ?: ""}")
@@ -281,5 +346,14 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null) =
         }
     }
 
-private fun Color.Companion.randomPrimary(): Color
-    = Color.HSLuv(h = Random.nextDouble() * 360, s = 0.5 + 0.5 * Random.nextDouble(), l = 0.5 + 0.35 * Random.nextDouble())
+private fun Color.Companion.randomPrimary(): Color = Color.HSLuv(
+    h = Random.nextDouble() * 360,
+    s = 0.5 + 0.5 * Random.nextDouble(),
+    l = 0.5 + 0.35 * Random.nextDouble()
+)
+
+private fun Color.Companion.randomNeutral(): Color = Color.HSLuv(
+    h = Random.nextDouble() * 360,
+    s = 0.001 + 0.2 * Random.nextDouble(),
+    l = 0.5
+)

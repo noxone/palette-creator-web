@@ -11,9 +11,11 @@ data class PaletteModel(
     val shadeCount: Int,
     val primaryColor: Color,
     val accentColorSeed: Int = ACCENT_COLOR_SEED_INIT,
+    val neutralColor: Color,
 ) {
     val proposedAccentColor = primaryColor.rotate(GOLDEN_ANGLE)
     val shadedPrimaryColors: List<ShadedColor> = primaryColor.createShades(shadeCount)
+    val shadedNeutralColors: List<ShadedColor> = neutralColor.createShades(shadeCount)
 
     init {
         // TODO: Create nice pri
