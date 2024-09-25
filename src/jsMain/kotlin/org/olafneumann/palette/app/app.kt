@@ -5,6 +5,7 @@ import dev.fritz2.core.HtmlTag
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
+import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.render
 import dev.fritz2.core.type
@@ -22,11 +23,6 @@ import kotlin.math.min
 
 private val COLOR_COUNT_DIV = 48
 private val HEADER_ID = "on_header"
-private val TEXT_COLOR = "text-slate-"
-private val DARK = 900
-private val LIGHT = 100
-private val MIDDLE = 500
-private fun textColor(shade: Int) = "${TEXT_COLOR}${shade}"
 
 fun main() {
 
@@ -37,9 +33,9 @@ fun main() {
             width / COLOR_COUNT_DIV
         }
     }
-    val colorStore = object : RootStore<PaletteModel>(PaletteModel(color = Color.Hex("#5e30eb")), job = Job()) {
+    val colorStore = object : RootStore<PaletteModel>(PaletteModel(shadeCount = 7, color = Color.Hex("#5e30eb")!!), job = Job()) {
         val setPrimaryColor: Handler<String> = handle { currentState: PaletteModel, action: String ->
-            currentState.copy(color = Color.Hex(action))
+            Color.Hex(action)?.let { currentState.copy(color = it) } ?: currentState
         }
     }
 
@@ -47,7 +43,7 @@ fun main() {
         Window.resizes handledBy colorCountStore.setSize
 
         div {
-            className("md:container md:mx-auto ${textColor(DARK)}")
+            className("md:container md:mx-auto text-slate-900")
 
 
             div {
@@ -60,7 +56,7 @@ fun main() {
                 }
                 colorCountStore.data.render { colorCount ->
                     // todo: change number of color blocks depending on screen width
-                    colorList(width = 2, height = 3, colors = (0..<colorCount).map { Color.HSLuv(h = 360.0 / colorCount * it, s = 0.3 + 0.65 / colorCount * it, l = 0.7) })
+                    colorList(width = 2.5, height = 2.8, colors = (0..<colorCount).map { Color.HSLuv(h = 360.0 / colorCount * it, s = 0.3 + 0.65 / colorCount * it, l = 0.7) })
                 }
             }
             div {
@@ -75,25 +71,75 @@ fun main() {
                 }
             }
 
-            Section(
+            section(
                 number = 1,
                 title = "Primary Color",
-                explanation = """This is the main color for your app or website.
-                        This one determines the color, people mostly see when interacting with your software.""",
-                /*postContent = {div {
-                    className("z-0")
-                    inlineStyle(colorStore.data.map { "position: absolute;right: 0;top: 0;bottom: 0;width: 50%;border-radius: 0 0.75em 0 0;background-color:${it.color};background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, ${it.color} 80%);" })
-                }}*/
+                instruction = "Please pick or enter the main color you want to use for your application.",
+                explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
+                resultContent = {
+                    colorStore.data.render(into = this) {
+                        p {
+                            +"The currently selected color would bring the first set of nice shades for your palette:"
+                        }
+                        div {
+                            className("border rounded-lg p-2")
+                            inlineStyle("max-width:${it.shadeCount * 3.1}rem;")
+                            val values = (1..it.shadeCount).map { it * 0.1 }.reversed()
+                            colorList(width = 2.5, height = 2.5, colors = it.color.createShades(values = values))
+                        }
+                    }
+                }
                 ) {
                 // direkt in boxy:
                 // inlineStyle(colorStore.data.map { "transition: all 0.4s ease-in-out;background-color:${it.color};background: linear-gradient(90deg, #f8fafc 50%, ${it.color} 80%);" })
+                // überlagert
+                /*postContent = {div {
+                    className("z-0")
+                    inlineStyle(colorStore.data.map { "position: absolute;right: 0;top: 0;bottom: 0;width: 50%;border-radius: 0 0.75em 0 0;background-color:${it.color.Hex()};background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, ${it.color.Hex()} 80%);" })
+                }}*/
 
-                VStack {
+
+                vStack {
                     div {
                         className("grid grid-cols-4")
-                        HStack {
+                        hStack {
                             className("col-span-3")
-                            VStack {
+
+                            div {
+                                className("inline-flex rounded-md shadow-sm")
+                                label {
+                                    className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    inlineStyle("position:relative;")
+                                    `for`("on-primary-color-picker")
+                                    div {
+                                        className("flex flex-wrap content-center justify-center h-full")
+                                        +"Color Picker"
+                                    }
+                                    div {
+                                        className("flex flex-wrap content-center justify-center z-0")
+                                        inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
+                                        input {
+                                            type("color")
+                                            inlineStyle("opacity:0;")
+                                            id("on-primary-color-picker")
+                                            value(colorStore.data.map { it.color.Hex() })
+                                            changes.values() handledBy colorStore.setPrimaryColor
+                                        }
+                                    }
+                                }
+                                button {
+                                    type("button")
+                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    +"Enter hex RGB"
+                                }
+                                button {
+                                    type("button")
+                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    +"Settings"
+                                }
+                            }
+
+                            /*vStack {
                                 div { +"Color picker" }
                                 input {
                                     type("color")
@@ -101,10 +147,10 @@ fun main() {
                                     changes.values() handledBy colorStore.setPrimaryColor
                                 }
                             }
-                            VStack {
+                            vStack {
                                 div { +"Hex:" }
                                 div { colorStore.data.render(this) { +it.color.Hex() } }
-                            }
+                            }*/
                         }
                         colorStore.data.render {
                             colorBox(color = it.color)
@@ -115,7 +161,7 @@ fun main() {
                 }
             }
 
-            Section(
+            section(
                 number = 2,
                 title = "Neutral Color",
                 explanation = """Next, we will select a quite neutral color for the background and foreground.
@@ -124,7 +170,7 @@ fun main() {
                 +"bla"
             }
 
-            Section(
+            section(
                 number = 3,
                 title = "Accent Color",
                 explanation = "You might need to highlight something. Then use an accent color, that fits to the primary color."
@@ -132,7 +178,7 @@ fun main() {
                 +"bla"
             }
 
-            Section(
+            section(
                 number = 4,
                 title = "Special Colors",
                 explanation = """For special cases like danger, warnings or even positive information you might want to use different colors in your UI.
@@ -141,17 +187,9 @@ fun main() {
                 +"bla"
             }
 
-            Section(
-                title = "Preview Color Palette",
-                explanation = """See your color palette in full beauty here."""
-            ) {
-                +"Palette"
-            }
-
-            Section(
+            section(
                 number = 5,
                 title = "Download",
-                backgroundShade = 200,
             ) {
                 +"bla"
             }
@@ -159,91 +197,81 @@ fun main() {
     }
 }
 
-private fun RenderContext.Section(
-    number: Int? = null,
+private fun RenderContext.section(
+    number: Int,
     title: String,
-    backgroundShade: Int = 50,
+    instruction: String? = null,
     explanation: String? = null,
-    postContent: (HtmlTag<HTMLDivElement>.() -> Unit)? = null,
+    resultContent: (HtmlTag<HTMLDivElement>.() -> Unit)? = null,
     content: HtmlTag<HTMLDivElement>.() -> Unit) =
-    boxy(backgroundShade = backgroundShade) {
-        number?.let {
+    boxy {
+        div {
+            className("hidden lg:block")
             div {
-                className("hidden lg:block")
-                SectionNumber(number)
+                className("on-title-font font-semibold text-7xl antialiased text-slate-500 w-full text-center lining-nums")
+                +number.toString()
             }
         }
         div {
-            className("col-span-11")
-            VStack {
-                div {
-                    className("mb-3")
-                    SectionTitle(title)
-                    explanation?.split("\n")?.forEach {
-                        Explanation(it)
-                    }
+            className("col-span-12 lg:col-span-11")
+            div {
+                className("mb-3")
+                h2 {
+                    className("on-title-font font-semibold text-3xl antialiased")
+                    +title
                 }
+                instruction?.let { p { +it } }
+            }
 
-                content()
+            content()
+
+            div {
+                className("text-xs text-slate-500")
+                explanation?.split("\n")?.forEach {
+                    p { +it }
+                }
             }
         }
-        postContent?.let { it() }
+        resultContent?.let {
+            div {
+                className("border-t col-span-12 lg:col-start-2 lg:col-span-11 mt-3 pt-3")
+                it()
+            }
+        }
     }
 
-private fun RenderContext.SectionNumber(number: Int) {
-    div {
-        className("on-title-font font-semibold text-7xl antialiased ${textColor(MIDDLE)} w-full text-center lining-nums")
-        +number.toString()
-    }
-}
-
-private fun RenderContext.HStack(content: HtmlTag<HTMLDivElement>.() -> Unit) {
+private fun RenderContext.hStack(content: HtmlTag<HTMLDivElement>.() -> Unit) {
     div {
         className("on-hstack flex flex-row flex-nowrap z-10")
         content()
     }
 }
 
-private fun RenderContext.VStack(content: HtmlTag<HTMLDivElement>.() -> Unit) {
+private fun RenderContext.vStack(content: HtmlTag<HTMLDivElement>.() -> Unit) {
     div {
         className("on-vstack flex flex-col flex-nowrap")
         content()
     }
 }
 
-private fun RenderContext.SectionTitle(text: String) {
-    h2 {
-        className("on-title-font font-semibold text-3xl antialiased")
-        +text
-    }
-}
-
-private fun RenderContext.Explanation(text: String) {
-    p {
-        className("text-sm ${textColor(MIDDLE)}")
-        +text
-    }
-}
-
-private fun RenderContext.boxy(backgroundShade: Int = 50, content: HtmlTag<HTMLDivElement>.() -> Unit) =
+private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
     div {
-        //border border-slate-200
-        className("mt-5 p-4 bg-slate-$backgroundShade md:rounded-xl shadow-xl relative grid grid-cols-12")
+        className("mt-5 p-4 bg-slate-50 md:rounded-xl shadow-xl grid grid-cols-12")
         content()
     }
 
-private fun RenderContext.colorList(width: Int, height: Int, colors: List<Color>) =
+private fun RenderContext.colorList(width: Double, height: Double, colors: List<Color>) =
     div {
-        className("flex flex-row flex-nowrap justify-around justify-items-center")
+        className("flex flex-row justify-around justify-items-center")
         colors.forEach {
             colorBox(width = width, height = height, color = it)
         }
     }
 
-private fun RenderContext.colorBox(width: Int, height: Int, color: Color) =
+private fun RenderContext.colorBox(width: Double, height: Double, color: Color) =
     div {
-        className("flex-auto bg-$color rounded border border-slate-200 shadow-inner w-$width h-$height mx-1")
-        inlineStyle("background-color: ${color.Hex()};width: ${width}em;height: ${height}em;")
+        className("flex-auto rounded border border-slate-200 shadow-inner mx-1")
+        inlineStyle("background-color: ${color.Hex()};width: ${width}rem;height: ${height}rem;")
     }
 
 private fun RenderContext.colorBox(color: Color, withText: Boolean = true) =
@@ -251,10 +279,15 @@ private fun RenderContext.colorBox(color: Color, withText: Boolean = true) =
         className("on-title-font rounded-lg shadow-xl font-thin")
         div {
             val useBrightTextColor = color.HSLuv().l < 0.5
-            className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center ${if(useBrightTextColor) textColor(LIGHT) else textColor(DARK)}")
+            className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center ${if(useBrightTextColor) "text-slate-100" else "text-slate-900"}")
             inlineStyle("background-color: ${color.Hex()};")
             if (withText) {
                 +color.Hex()
             }
         }
     }
+
+private fun Color.createShades(values: List<Double>): List<Color> {
+    val hsluv = HSLuv()
+    return values.map { Color.HSLuv(h = hsluv.h, s = hsluv.s, l = it) }
+}

@@ -747,26 +747,22 @@ data class Color(var R: Double = 0.0, var G: Double = 0.0, var B: Double = 0.0) 
         }
 
         // Hex parses a "html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
-        public fun Hex(colorString: String): Color {
-            var r: Double
-            var g: Double
-            var b: Double
-
+        public fun Hex(colorString: String): Color? {
             val scol = if (colorString.startsWith("#")) colorString.substring(1) else colorString
 
             if (scol.length == 3) {
-                r = scol.substring(0, 1).toInt(16) / 255.0
-                g = scol.substring(1, 2).toInt(16) / 255.0
-                b = scol.substring(2, 3).toInt(16) / 255.0
+                val r = scol.substring(0, 1).toInt(16) / 255.0
+                val g = scol.substring(1, 2).toInt(16) / 255.0
+                val b = scol.substring(2, 3).toInt(16) / 255.0
                 return Color(R = r, G = g, B = b)
             } else if (scol.length == 6) {
-                r = scol.substring(0, 2).toInt(16) / 255.0
-                g = scol.substring(2, 4).toInt(16) / 255.0
-                b = scol.substring(4, 6).toInt(16) / 255.0
+                val r = scol.substring(0, 2).toInt(16) / 255.0
+                val g = scol.substring(2, 4).toInt(16) / 255.0
+                val b = scol.substring(4, 6).toInt(16) / 255.0
                 return Color(R = r, G = g, B = b)
             }
 
-            throw IllegalArgumentException("Not a hex color")
+            return null
         }
 
         /// Linear ///
