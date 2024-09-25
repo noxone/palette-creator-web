@@ -19,7 +19,9 @@ import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
+import org.w3c.dom.events.MouseEvent
 import kotlin.math.min
+import kotlin.random.Random
 
 private val COLOR_COUNT_DIV = 48
 private val HEADER_ID = "on_header"
@@ -33,9 +35,12 @@ fun main() {
             width / COLOR_COUNT_DIV
         }
     }
-    val colorStore = object : RootStore<PaletteModel>(PaletteModel(shadeCount = 7, color = Color.Hex("#5e30eb")!!), job = Job()) {
+    val colorStore = object : RootStore<PaletteModel>(PaletteModel(shadeCount = 7, primaryColor = Color.randomPrimary()), job = Job()) {
         val setPrimaryColor: Handler<String> = handle { currentState: PaletteModel, action: String ->
-            Color.Hex(action)?.let { currentState.copy(color = it) } ?: currentState
+            Color.Hex(action)?.let { currentState.setPrimaryColor(primaryColor = it) } ?: currentState
+        }
+        val randomizePrimaryColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
+            currentState.setPrimaryColor(primaryColor = Color.randomPrimary())
         }
     }
 
@@ -55,7 +60,6 @@ fun main() {
                     +"Palette Creator"
                 }
                 colorCountStore.data.render { colorCount ->
-                    // todo: change number of color blocks depending on screen width
                     colorList(width = 2.5, height = 2.8, colors = (0..<colorCount).map { Color.HSLuv(h = 360.0 / colorCount * it, s = 0.3 + 0.65 / colorCount * it, l = 0.7) })
                 }
             }
@@ -77,15 +81,15 @@ fun main() {
                 instruction = "Please pick or enter the main color you want to use for your application.",
                 explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
                 resultContent = {
-                    colorStore.data.render(into = this) {
-                        p {
-                            +"The currently selected color would bring the first set of nice shades for your palette:"
-                        }
-                        div {
-                            className("border rounded-lg p-2")
+                    p {
+                        +"The currently selected color would bring the first set of nice shades for your palette:"
+                    }
+                    div {
+                        colorStore.data.render(into = this) {
+                            className("border rounded-lg p-2 mt-2 shadow-inner")
                             inlineStyle("max-width:${it.shadeCount * 3.1}rem;")
-                            val values = (1..it.shadeCount).map { it * 0.1 }.reversed()
-                            colorList(width = 2.5, height = 2.5, colors = it.color.createShades(values = values))
+
+                            colorList(width = 2.5, height = 2.5, it.shadedPrimaryColors.map { it.color })
                         }
                     }
                 }
@@ -113,7 +117,7 @@ fun main() {
                                             type("color")
                                             inlineStyle("opacity:0;")
                                             id("on-primary-color-picker")
-                                            value(colorStore.data.map { it.color.Hex() })
+                                            value(colorStore.data.map { it.primaryColor.Hex() })
                                             changes.values() handledBy colorStore.setPrimaryColor
                                         }
                                     }
@@ -126,7 +130,8 @@ fun main() {
                                 button {
                                     type("button")
                                     className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Settings"
+                                    +"Randomize Color"
+                                    clicks handledBy colorStore.randomizePrimaryColor
                                 }
                             }
 
@@ -144,7 +149,8 @@ fun main() {
                             }*/
                         }
                         colorStore.data.render {
-                            colorBox(color = it.color)
+                            val useBrightTextColor = it.primaryColor.HSLuv().l < 0.5
+                            colorBox(color = it.primaryColor, textColor = if (useBrightTextColor) it.shadedPrimaryColors.first().color else it.shadedPrimaryColors.last().color)
                         }
                     }
 
@@ -265,20 +271,15 @@ private fun RenderContext.colorBox(width: Double, height: Double, color: Color) 
         inlineStyle("background-color: ${color.Hex()};width: ${width}rem;height: ${height}rem;")
     }
 
-private fun RenderContext.colorBox(color: Color, withText: Boolean = true) =
+private fun RenderContext.colorBox(color: Color, textColor: Color? = null) =
     div {
         className("on-title-font rounded-lg shadow-xl font-thin")
         div {
-            val useBrightTextColor = color.HSLuv().l < 0.5
-            className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center ${if(useBrightTextColor) "text-slate-100" else "text-slate-900"}")
-            inlineStyle("background-color: ${color.Hex()};")
-            if (withText) {
-                +color.Hex()
-            }
+            className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center")
+            inlineStyle("background-color: ${color.Hex()};${textColor?.let { "color:${it.Hex()};" } ?: ""}")
+            textColor?.let { +color.Hex() }
         }
     }
 
-private fun Color.createShades(values: List<Double>): List<Color> {
-    val hsluv = HSLuv()
-    return values.map { Color.HSLuv(h = hsluv.h, s = hsluv.s, l = it) }
-}
+private fun Color.Companion.randomPrimary(): Color
+    = Color.HSLuv(h = Random.nextDouble() * 360, s = 0.5 + 0.5 * Random.nextDouble(), l = 0.5 + 0.35 * Random.nextDouble())
