@@ -90,15 +90,6 @@ fun main() {
                     }
                 }
                 ) {
-                // direkt in boxy:
-                // inlineStyle(colorStore.data.map { "transition: all 0.4s ease-in-out;background-color:${it.color};background: linear-gradient(90deg, #f8fafc 50%, ${it.color} 80%);" })
-                // überlagert
-                /*postContent = {div {
-                    className("z-0")
-                    inlineStyle(colorStore.data.map { "position: absolute;right: 0;top: 0;bottom: 0;width: 50%;border-radius: 0 0.75em 0 0;background-color:${it.color.Hex()};background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, ${it.color.Hex()} 80%);" })
-                }}*/
-
-
                 vStack {
                     div {
                         className("grid grid-cols-4")
