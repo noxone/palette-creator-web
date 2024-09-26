@@ -15,7 +15,7 @@ data class PaletteModel(
 ) {
     val proposedAccentColor = primaryColor.rotate(GOLDEN_ANGLE)
     val shadedPrimaryColors: List<ShadedColor> = primaryColor.createShades(shadeCount)
-    val shadedNeutralColors: List<ShadedColor> = neutralColor.createShades(shadeCount)
+    val shadedNeutralColors: List<ShadedColor> = neutralColor.createShades(shadeCount, min = 0.05, max = 0.95)
 
     init {
         // TODO: Create nice pri
@@ -26,8 +26,8 @@ data class PaletteModel(
     companion object {
         private const val ACCENT_COLOR_SEED_INIT = 1
 
-        private fun Color.createShades(amount: Int): List<ShadedColor> =
-            createShades((1..amount).map { index -> 0.1 + 0.8 / amount * index }.reversed())
+        private fun Color.createShades(amount: Int, min: Double = 0.1, max: Double = 0.9): List<ShadedColor> =
+            createShades((1..amount).map { index -> min + (max - min) / amount * index }.reversed())
 
         private fun Color.createShades(values: List<Double>): List<ShadedColor> {
             val hsluv = HSLuv()

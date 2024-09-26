@@ -17,11 +17,14 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.colorful.Color
+import org.olafneumann.palette.colorful.ColorName
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 private val COLOR_COUNT_DIV = 48
@@ -49,6 +52,12 @@ fun main() {
         }
         val randomizePrimaryColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
             currentState.setPrimaryColor(primaryColor = Color.randomPrimary())
+        }
+        val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
+            currentState.copy(neutralColor = Color.randomNeutral(ColorName.red, ColorName.yellow, ColorName.orange))
+        }
+        val randomizeColdNeutralColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
+            currentState.copy(neutralColor = Color.randomNeutral(ColorName.blue, ColorName.aqua))
         }
         val randomizeNeutralColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
             currentState.copy(neutralColor = Color.randomNeutral())
@@ -200,18 +209,25 @@ fun main() {
                                 className("inline-flex rounded-md shadow-sm")
                                 button {
                                     type("button")
-                                    className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"abc"
+                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    +"Derived from primary"
                                 }
                                 button {
                                     type("button")
                                     className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Enter hex RGB"
+                                    +"Random warm"
+                                    clicks handledBy colorStore.randomizeWarmNeutralColor
+                                }
+                                button {
+                                    type("button")
+                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                    +"Random cold"
+                                    clicks handledBy colorStore.randomizeColdNeutralColor
                                 }
                                 button {
                                     type("button")
                                     className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Randomize Color"
+                                    +"Completely random"
                                     clicks handledBy colorStore.randomizeNeutralColor
                                 }
                             }
@@ -219,7 +235,6 @@ fun main() {
                         div {
                             className("col-span-1 lg:col-span-2 w-full h-full")
                             colorStore.data.render(into = this) {
-                                //val useBrightTextColor = it.neutralColor.HSLuv().l < 0.65
                                 colorBox(
                                     color = it.neutralColor,
                                     textColor = it.shadedNeutralColors.first().color
@@ -342,7 +357,16 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null) =
         div {
             className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center")
             inlineStyle("background-color: ${color.Hex()};${textColor?.let { "color:${it.Hex()};" } ?: ""}")
-            textColor?.let { +color.Hex() }
+            textColor?.let {
+                p {
+                    +color.Hex()
+                }
+                p {
+                    className("ms-2")
+                    val hsl = color.Hsl()
+                    +"${hsl.h.format(2)},${hsl.s.format(2)},${hsl.l.format(2)}"
+                }
+            }
         }
     }
 
@@ -352,8 +376,19 @@ private fun Color.Companion.randomPrimary(): Color = Color.HSLuv(
     l = 0.5 + 0.35 * Random.nextDouble()
 )
 
-private fun Color.Companion.randomNeutral(): Color = Color.HSLuv(
-    h = Random.nextDouble() * 360,
-    s = 0.001 + 0.2 * Random.nextDouble(),
-    l = 0.5
-)
+private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): Color {
+    val nextH = { Random.nextDouble() * 360 }
+    var h = nextH()
+    if (allowedColorNames.isNotEmpty()) {
+        while (allowedColorNames.none { ColorName.fromDegree(h) == it }) {
+            h = nextH()
+        }
+    }
+    return Color.HSLuv(
+        h = h,
+        s = 0.001 + 0.1 * Random.nextDouble(),
+        l = 0.5
+    )
+}
+
+private fun Double.format(digits: Int) = ((10.0.pow(digits) * this).roundToInt().toDouble() / 10.0.pow(digits)).toString()
