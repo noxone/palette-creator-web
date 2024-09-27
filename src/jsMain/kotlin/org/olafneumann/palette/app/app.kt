@@ -84,6 +84,11 @@ fun main() {
         val removeAccentColor: Handler<Int> = handle { model: PaletteModel, index: Int ->
             model.copy(accentColors = model.accentColors - model.accentColors.get(index))
         }
+
+        val downloadStuff: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            // TODO: implement stuff
+            model
+        }
     }
 
     render(selector = "#target") {
@@ -332,7 +337,11 @@ fun main() {
                 number = 5,
                 title = "Download",
             ) {
-                +"bla"
+                button {
+                    type("button")
+                    clicks handledBy colorStore.downloadStuff
+                    +"Download"
+                }
             }
         }
     }
