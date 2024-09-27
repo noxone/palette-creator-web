@@ -12,16 +12,23 @@ data class PaletteModel(
     val primaryColor: Color,
     val accentColorSeed: Int = ACCENT_COLOR_SEED_INIT,
     val neutralColor: Color,
+    val accentColors: List<Color>,
 ) {
-    val proposedAccentColor = primaryColor.rotate(GOLDEN_ANGLE)
+    // TODO: Improve way to generate accent colors!
+    private val proposedAccentColor = (accentColors.lastOrNull() ?: primaryColor).rotate(GOLDEN_ANGLE * accentColorSeed)
+
     val shadedPrimaryColors: List<ShadedColor> = primaryColor.createShades(shadeCount)
     val shadedNeutralColors: List<ShadedColor> = neutralColor.createShades(shadeCount, min = 0.05, max = 0.95)
+    val shadedAccentColors:List<List<ShadedColor>> = accentColors.map { it.createShades(shadeCount) }
 
-    init {
-        // TODO: Create nice pri
-    }
-
-    fun setPrimaryColor(primaryColor: Color) = copy(primaryColor = primaryColor, accentColorSeed = 1)
+    fun setPrimaryColor(primaryColor: Color, resetAccentColors: Boolean) =
+        copy(
+            primaryColor = primaryColor,
+            accentColors = if (resetAccentColors) emptyList() else accentColors,
+            accentColorSeed = if (resetAccentColors) 1 else accentColorSeed,
+        )
+    fun addRandomAccentColor(): PaletteModel =
+        copy(accentColors = accentColors + proposedAccentColor, accentColorSeed = accentColorSeed + 1)
 
     companion object {
         private const val ACCENT_COLOR_SEED_INIT = 1

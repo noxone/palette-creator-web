@@ -45,22 +45,44 @@ fun main() {
                 shadeCount = 7,
                 primaryColor = Color.randomPrimary(),
                 neutralColor = Color.randomNeutral(),
+                accentColors = emptyList(),
             ),
-            job = Job()) {
-        val setPrimaryColor: Handler<String> = handle { currentState: PaletteModel, action: String ->
-            Color.Hex(action)?.let { currentState.setPrimaryColor(primaryColor = it) } ?: currentState
+            job = Job()
+        ) {
+
+        private fun checkAccentColorReset(model: PaletteModel): Boolean {
+            val hasAccentColorsDefined = model.accentColors.isNotEmpty()
+            var resetAccentColors = false
+            if (hasAccentColorsDefined) {
+                if (window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")) {
+                    resetAccentColors = true
+                }
+            }
+            return resetAccentColors
         }
-        val randomizePrimaryColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
-            currentState.setPrimaryColor(primaryColor = Color.randomPrimary())
+
+        val setPrimaryColor: Handler<String> = handle { model: PaletteModel, action: String ->
+            Color.Hex(action)
+                ?.let { model.setPrimaryColor(primaryColor = it, resetAccentColors = checkAccentColorReset(model)) }
+                ?: model
         }
-        val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
-            currentState.copy(neutralColor = Color.randomNeutral(ColorName.red, ColorName.yellow, ColorName.orange))
+        val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            model.setPrimaryColor(primaryColor = Color.randomPrimary(), resetAccentColors = checkAccentColorReset(model))
         }
-        val randomizeColdNeutralColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
-            currentState.copy(neutralColor = Color.randomNeutral(ColorName.blue, ColorName.aqua))
+        val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            model.copy(neutralColor = Color.randomNeutral(ColorName.red, ColorName.yellow, ColorName.orange))
         }
-        val randomizeNeutralColor: Handler<MouseEvent> = handle { currentState: PaletteModel, _: MouseEvent ->
-            currentState.copy(neutralColor = Color.randomNeutral())
+        val randomizeColdNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            model.copy(neutralColor = Color.randomNeutral(ColorName.blue, ColorName.aqua))
+        }
+        val randomizeNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            model.copy(neutralColor = Color.randomNeutral())
+        }
+        val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            model.addRandomAccentColor()
+        }
+        val removeAccentColor: Handler<Int> = handle { model: PaletteModel, index: Int ->
+            model.copy(accentColors = model.accentColors - model.accentColors.get(index))
         }
     }
 
@@ -109,69 +131,67 @@ fun main() {
                 title = "Primary Color",
                 instruction = "Please pick or enter the main color you want to use for your application.",
                 explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
-                secondContent = {
-                    p {
-                        +"The currently selected color would bring the first set of nice shades for your palette:"
-                    }
-                    div {
-                        colorStore.data.render(into = this) {
-                            className("border rounded-lg p-2 mt-2 shadow-inner")
-                            inlineStyle("max-width:46rem;")
-
-                            colorList(width = 2.5, height = 2.5, it.shadedPrimaryColors.map { sc -> sc.color })
-                        }
-                    }
-                }
             ) {
-                vStack {
-                    div {
-                        className("grid grid-cols-4 lg:grid-cols-6")
-                        hStack {
-                            className("col-span-3 lg:col-span-4")
+                div {
+                    className("grid grid-cols-12")
 
+                    div {
+                        className("inline-flex rounded-md shadow-sm col-span-8")
+                        label {
+                            className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            inlineStyle("position:relative;")
+                            `for`("on-primary-color-picker")
                             div {
-                                className("inline-flex rounded-md shadow-sm")
-                                label {
-                                    className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    inlineStyle("position:relative;")
-                                    `for`("on-primary-color-picker")
-                                    div {
-                                        className("flex flex-wrap content-center justify-center h-full")
-                                        +"Color Picker"
-                                    }
-                                    div {
-                                        className("flex flex-wrap content-center justify-center z-0")
-                                        inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
-                                        input {
-                                            type("color")
-                                            inlineStyle("opacity:0;")
-                                            id("on-primary-color-picker")
-                                            value(colorStore.data.map { it.primaryColor.Hex() })
-                                            changes.values() handledBy colorStore.setPrimaryColor
-                                        }
-                                    }
-                                }
-                                button {
-                                    type("button")
-                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Enter hex RGB"
-                                }
-                                button {
-                                    type("button")
-                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Randomize Color"
-                                    clicks handledBy colorStore.randomizePrimaryColor
+                                className("flex flex-wrap content-center justify-center h-full")
+                                +"Color Picker"
+                            }
+                            div {
+                                className("flex flex-wrap content-center justify-center z-0")
+                                inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
+                                input {
+                                    type("color")
+                                    inlineStyle("opacity:0;")
+                                    id("on-primary-color-picker")
+                                    value(colorStore.data.map { it.primaryColor.Hex() })
+                                    changes.values() handledBy colorStore.setPrimaryColor
                                 }
                             }
                         }
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Enter hex RGB"
+                        }
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Randomize Color"
+                            clicks handledBy colorStore.randomizePrimaryColor
+                        }
+                    }
+
+                    div {
+                        className("col-span-4 w-full h-full")
+                        colorStore.data.render(into = this) {
+                            val useBrightTextColor = it.primaryColor.HSLuv().l < 0.65
+                            colorBox(
+                                color = it.primaryColor,
+                                textColor = if (useBrightTextColor) it.shadedPrimaryColors.first().color else it.shadedPrimaryColors.last().color
+                            )
+                        }
+                    }
+
+                    div {
+                        className("border-t col-span-12 mt-3 pt-3")
+                        p {
+                            +"The currently selected color would bring the first set of nice shades for your palette:"
+                        }
                         div {
-                            className("col-span-1 lg:col-span-2 w-full h-full")
                             colorStore.data.render(into = this) {
-                                val useBrightTextColor = it.primaryColor.HSLuv().l < 0.65
-                                colorBox(
-                                    color = it.primaryColor,
-                                    textColor = if (useBrightTextColor) it.shadedPrimaryColors.first().color else it.shadedPrimaryColors.last().color
-                                )
+                                className("border rounded-lg p-2 mt-2 shadow-inner")
+                                inlineStyle("max-width:46rem;")
+
+                                colorList(width = 2.5, height = 2.5, it.shadedPrimaryColors.map { sc -> sc.color })
                             }
                         }
                     }
@@ -185,60 +205,57 @@ fun main() {
                 explanation = """True black or white often looks strange to the eye, so we should go with some other very dark or light colors.
                     |There is no real science in choosing the neutral color. It should just fit to your primary color.
                 """.trimMargin(),
-                secondContent = {
-                    p {
-                        +"The neutral shades would look like this:"
-                    }
+            ) {
+                div {
+                    className("grid grid-cols-12")
                     div {
-                        colorStore.data.render(into = this) {
-                            className("border rounded-lg p-2 mt-2 shadow-inner")
-                            inlineStyle("max-width:46rem;")
-
-                            colorList(width = 2.5, height = 2.5, it.shadedNeutralColors.map { sc -> sc.color })
+                        className("col-span-8 inline-flex rounded-md shadow-sm")
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Derived from primary"
+                        }
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Random warm"
+                            clicks handledBy colorStore.randomizeWarmNeutralColor
+                        }
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Random cold"
+                            clicks handledBy colorStore.randomizeColdNeutralColor
+                        }
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Completely random"
+                            clicks handledBy colorStore.randomizeNeutralColor
                         }
                     }
-                }
-            ) {
-                vStack {
-                    div {
-                        className("grid grid-cols-4 lg:grid-cols-6")
-                        hStack {
-                            className("col-span-3 lg:col-span-4")
 
-                            div {
-                                className("inline-flex rounded-md shadow-sm")
-                                button {
-                                    type("button")
-                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Derived from primary"
-                                }
-                                button {
-                                    type("button")
-                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Random warm"
-                                    clicks handledBy colorStore.randomizeWarmNeutralColor
-                                }
-                                button {
-                                    type("button")
-                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Random cold"
-                                    clicks handledBy colorStore.randomizeColdNeutralColor
-                                }
-                                button {
-                                    type("button")
-                                    className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                    +"Completely random"
-                                    clicks handledBy colorStore.randomizeNeutralColor
-                                }
-                            }
+                    div {
+                        className("col-span-4 w-full h-full")
+                        colorStore.data.render(into = this) {
+                            colorBox(
+                                color = it.neutralColor,
+                                textColor = it.shadedNeutralColors.first().color
+                            )
+                        }
+                    }
+
+                    div {
+                        className("border-t col-span-12 mt-3 pt-3")
+                        p {
+                            +"The neutral shades would look like this:"
                         }
                         div {
-                            className("col-span-1 lg:col-span-2 w-full h-full")
                             colorStore.data.render(into = this) {
-                                colorBox(
-                                    color = it.neutralColor,
-                                    textColor = it.shadedNeutralColors.first().color
-                                )
+                                className("border rounded-lg p-2 mt-2 shadow-inner")
+                                inlineStyle("max-width:46rem;")
+
+                                colorList(width = 2.5, height = 2.5, it.shadedNeutralColors.map { sc -> sc.color })
                             }
                         }
                     }
@@ -248,9 +265,58 @@ fun main() {
             section(
                 number = 3,
                 title = "Accent Color",
-                explanation = "You might need to highlight something. Then use an accent color, that fits to the primary color."
+                instruction = "If you need need to highlight something, select an accent color.",
+                explanation = """In order to highlight something you probably don't want to use your primary color. So add one or more accent colors.
+                    |Be aware that too many color will also not do the trick ;)""".trimMargin(),
             ) {
-                +"bla"
+                div {
+                    className("grid grid-cols-12")
+                    div {
+                        className("col-span-12 inline-flex rounded-md shadow-sm")
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Add fitting accent color"
+                            clicks handledBy colorStore.addRandomAccentColor
+                        }
+                        button {
+                            type("button")
+                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                            +"Pick custom accent color"
+                            // clicks handledBy colorStore.randomizeWarmNeutralColor
+                        }
+                    }
+
+                    div {
+                        colorStore.data.renderIf(predicate = { it.shadedAccentColors.isNotEmpty() }, into = this) {
+                            className(" col-span-12 mt-3 pt-3")
+                            className(
+                                colorStore.data.map { it.shadedAccentColors.isNotEmpty() },
+                                false
+                            ) { if (it) "border-t" else "" }
+                            p {
+                                +"The accent shades would look like this:"
+                            }
+                            colorStore.data.map { it.shadedAccentColors }.renderEach { shades ->
+                                val index = it.shadedAccentColors.indexOf(shades)
+                                div {
+                                    className("flex flex-row")
+                                    div {
+                                        className("border rounded-lg p-2 mt-2 shadow-inner")
+                                        inlineStyle("max-width:46rem;")
+
+                                        colorList(width = 2.5, height = 2.5, shades.map { sc -> sc.color })
+                                    }
+                                    button {
+                                        type("button")
+                                        +"D"
+                                        clicks.map { index } handledBy colorStore.removeAccentColor
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             section(
@@ -277,7 +343,6 @@ private fun RenderContext.section(
     title: String,
     instruction: String? = null,
     explanation: String? = null,
-    secondContent: (HtmlTag<HTMLDivElement>.() -> Unit)? = null,
     content: HtmlTag<HTMLDivElement>.() -> Unit
 ) =
     boxy {
@@ -307,12 +372,6 @@ private fun RenderContext.section(
             }
 
             content()
-        }
-        secondContent?.let {
-            div {
-                className("border-t col-span-12 lg:col-start-2 lg:col-span-11 mt-3 pt-3")
-                it()
-            }
         }
     }
 
@@ -391,4 +450,5 @@ private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): 
     )
 }
 
-private fun Double.format(digits: Int) = ((10.0.pow(digits) * this).roundToInt().toDouble() / 10.0.pow(digits)).toString()
+private fun Double.format(digits: Int) =
+    ((10.0.pow(digits) * this).roundToInt().toDouble() / 10.0.pow(digits)).toString()
