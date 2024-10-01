@@ -17,7 +17,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.colorful.Color
-import org.olafneumann.palette.colorful.ColorName
+import org.olafneumann.palette.colors.ColorName
+import org.olafneumann.palette.colors.contrast
+import org.olafneumann.palette.js.copyToClipboard
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
@@ -69,6 +71,9 @@ fun main() {
         val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.setPrimaryColor(primaryColor = Color.randomPrimary(), resetAccentColors = checkAccentColorReset(model))
         }
+        val deriveNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            model.copy(neutralColor = model.primaryColor.deriveNeutral())
+        }
         val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.copy(neutralColor = Color.randomNeutral(ColorName.red, ColorName.yellow, ColorName.orange))
         }
@@ -87,6 +92,11 @@ fun main() {
 
         val downloadStuff: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             // TODO: implement stuff
+            model
+        }
+
+        val copyColorToClipboard: Handler<Color> = handle { model: PaletteModel, color: Color ->
+            copyToClipboard(color.Hex())
             model
         }
     }
@@ -126,7 +136,7 @@ fun main() {
                         +"You want to create a color palette for your app or website. Then this might be a good starting point for you. "
                     }
                     p {
-                        +"In a very steps we will create a nice color palette for you."
+                        +"In a few steps we will create a nice color palette for you."
                     }
                 }
             }
@@ -196,7 +206,12 @@ fun main() {
                                 className("border rounded-lg p-2 mt-2 shadow-inner")
                                 inlineStyle("max-width:46rem;")
 
-                                colorList(width = 2.5, height = 2.5, it.shadedPrimaryColors.map { sc -> sc.color })
+                                colorList(
+                                    width = 2.5,
+                                    height = 2.5,
+                                    it.shadedPrimaryColors.map { sc -> sc.color },
+                                    handler = colorStore.copyColorToClipboard
+                                )
                             }
                         }
                     }
@@ -219,6 +234,7 @@ fun main() {
                             type("button")
                             className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
                             +"Derived from primary"
+                            clicks handledBy colorStore.deriveNeutralColor
                         }
                         button {
                             type("button")
@@ -242,11 +258,18 @@ fun main() {
 
                     div {
                         className("col-span-4 w-full h-full")
+
                         colorStore.data.render(into = this) {
-                            colorBox(
-                                color = it.neutralColor,
-                                textColor = it.shadedNeutralColors.first().color
-                            )
+                            div {
+                                colorBox(
+                                    color = it.neutralColor,
+                                    textColor = it.shadedNeutralColors.first().color
+                                )
+                            }
+
+                            div {
+                                +"Contrast to primary color: ${it.neutralColor.contrast(it.primaryColor)}"
+                            }
                         }
                     }
 
@@ -260,7 +283,11 @@ fun main() {
                                 className("border rounded-lg p-2 mt-2 shadow-inner")
                                 inlineStyle("max-width:46rem;")
 
-                                colorList(width = 2.5, height = 2.5, it.shadedNeutralColors.map { sc -> sc.color })
+                                colorList(
+                                    width = 2.5,
+                                    height = 2.5,
+                                    it.shadedNeutralColors.map { sc -> sc.color },
+                                    handler = colorStore.copyColorToClipboard)
                             }
                         }
                     }
@@ -310,7 +337,12 @@ fun main() {
                                         className("border rounded-lg p-2 mt-2 shadow-inner")
                                         inlineStyle("max-width:46rem;")
 
-                                        colorList(width = 2.5, height = 2.5, shades.map { sc -> sc.color })
+                                        colorList(
+                                            width = 2.5,
+                                            height = 2.5,
+                                            shades.map { sc -> sc.color },
+                                            handler = colorStore.copyColorToClipboard
+                                            )
                                     }
                                     button {
                                         type("button")
@@ -404,22 +436,26 @@ private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
         content()
     }
 
-private fun RenderContext.colorList(width: Double, height: Double, colors: List<Color>) =
+private fun RenderContext.colorList(width: Double, height: Double, colors: List<Color>, handler: Handler<Color>? = null) =
     div {
         className("flex flex-row justify-around justify-items-center")
         colors.forEach {
-            colorBox(width = width, height = height, color = it)
+            colorBox(width = width, height = height, color = it, handler = handler)
         }
     }
 
-private fun RenderContext.colorBox(width: Double, height: Double, color: Color) =
+private fun RenderContext.colorBox(width: Double, height: Double, color: Color, handler: Handler<Color>? = null) =
     div {
         className("flex-auto rounded border border-slate-200 shadow-inner mx-1")
         inlineStyle("background-color: ${color.Hex()};width: ${width}rem;height: ${height}rem;")
         title(color.Hex())
+
+        handler?.let {
+            clicks.map { color } handledBy it
+        }
     }
 
-private fun RenderContext.colorBox(color: Color, textColor: Color? = null) =
+private fun RenderContext.colorBox(color: Color, textColor: Color? = null, handler: Handler<Color>? = null) =
     div {
         className("on-title-font rounded-lg shadow-xl font-thin h-full")
         div {
@@ -435,6 +471,10 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null) =
                     +"${hsl.h.format(2)},${hsl.s.format(2)},${hsl.l.format(2)}"
                 }
             }
+
+            handler?.let {
+                clicks.map { color } handledBy it
+            }
         }
     }
 
@@ -443,6 +483,11 @@ private fun Color.Companion.randomPrimary(): Color = Color.HSLuv(
     s = 0.5 + 0.5 * Random.nextDouble(),
     l = 0.5 + 0.35 * Random.nextDouble()
 )
+
+private fun Color.deriveNeutral(): Color {
+    val hsl = HSLuv()
+    return Color.HSLuv(h = hsl.h, s = 0.05, l = hsl.l)
+}
 
 private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): Color {
     val nextH = { Random.nextDouble() * 360 }

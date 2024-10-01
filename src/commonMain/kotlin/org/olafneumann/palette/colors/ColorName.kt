@@ -1,4 +1,6 @@
-package org.olafneumann.palette.colorful
+package org.olafneumann.palette.colors
+
+import org.olafneumann.palette.colorful.Color
 
 enum class ColorName(val from: Double, val to: Double) {
     red(from = 310.0, to = 20.0),
