@@ -29,8 +29,8 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-private val COLOR_COUNT_DIV = 48
-private val HEADER_ID = "on_header"
+private const val COLOR_COUNT_DIV = 48
+private const val HEADER_ID = "on_header"
 
 fun main() {
 
@@ -87,7 +87,7 @@ fun main() {
             model.addRandomAccentColor()
         }
         val removeAccentColor: Handler<Int> = handle { model: PaletteModel, index: Int ->
-            model.copy(accentColors = model.accentColors - model.accentColors.get(index))
+            model.copy(accentColors = model.accentColors - model.accentColors[index])
         }
 
         val downloadStuff: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
@@ -416,20 +416,6 @@ private fun RenderContext.section(
         }
     }
 
-private fun RenderContext.hStack(content: HtmlTag<HTMLDivElement>.() -> Unit) {
-    div {
-        className("on-hstack flex flex-row flex-nowrap z-10")
-        content()
-    }
-}
-
-private fun RenderContext.vStack(content: HtmlTag<HTMLDivElement>.() -> Unit) {
-    div {
-        className("on-vstack flex flex-col flex-nowrap")
-        content()
-    }
-}
-
 private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
     div {
         className("mt-5 p-4 bg-slate-50 md:rounded-xl shadow-xl grid grid-cols-12")
@@ -478,7 +464,7 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null, handl
         }
     }
 
-private fun Color.Companion.randomPrimary(): Color = Color.HSLuv(
+private fun Color.Companion.randomPrimary(): Color = HSLuv(
     h = Random.nextDouble() * 360,
     s = 0.5 + 0.5 * Random.nextDouble(),
     l = 0.5 + 0.35 * Random.nextDouble()
@@ -486,7 +472,7 @@ private fun Color.Companion.randomPrimary(): Color = Color.HSLuv(
 
 private fun Color.deriveNeutral(): Color {
     val hsl = HSLuv()
-    return Color.HSLuv(h = hsl.h, s = 0.05, l = hsl.l)
+    return Color.HSLuv(h = hsl.h, s = 0.05, l = 0.5)
 }
 
 private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): Color {
@@ -497,7 +483,7 @@ private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): 
             h = nextH()
         }
     }
-    return Color.HSLuv(
+    return HSLuv(
         h = h,
         s = 0.001 + 0.1 * Random.nextDouble(),
         l = 0.5

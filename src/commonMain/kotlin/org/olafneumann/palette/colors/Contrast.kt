@@ -4,6 +4,8 @@ import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colorful.RGB
 import kotlin.math.roundToInt
 
+// https://medium.muz.li/the-science-of-color-contrast-an-expert-designers-guide-33e84c41d156
+
 private fun RGB.relativeLuminance(): Double =
     0.2126 * r + 0.7152 * g + 0.0722 * b
 
