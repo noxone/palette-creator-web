@@ -19,3 +19,6 @@ zip.generateAsync(js("{type:'blob'}")).then {
     saveAs(it, "test.zip")
 }
  */
+
+
+// zip.generateAsync(mapOf("type" to "blob").toJson());
