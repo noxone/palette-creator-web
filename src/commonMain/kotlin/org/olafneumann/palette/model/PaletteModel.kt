@@ -37,8 +37,8 @@ data class PaletteModel(
             createShades((1..amount).map { index -> min + (max - min) / amount * index }.reversed())
 
         private fun Color.createShades(values: List<Double>): List<ShadedColor> {
-            val hsluv = HSLuv()
-            return values.map { ShadedColor(color = Color.HSLuv(h = hsluv.h, s = hsluv.s, l = it), shade = it) }
+            val hsluv = hsluv()
+            return values.map { ShadedColor(color = Color.hsluv(h = hsluv.h, s = hsluv.s, l = it), shade = it) }
         }
     }
 }
@@ -49,6 +49,6 @@ data class ShadedColor(
 )
 
 private fun Color.rotate(degrees: Double): Color {
-    val hsluv = HSLuv()
-    return Color.HSLuv(h = (hsluv.h + degrees).rem(MAX_ANGLE), s = hsluv.s, l = hsluv.l)
+    val hsluv = hsluv()
+    return Color.hsluv(h = (hsluv.h + degrees).rem(MAX_ANGLE), s = hsluv.s, l = hsluv.l)
 }

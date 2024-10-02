@@ -33,6 +33,6 @@ enum class ColorName(val from: Double, val to: Double) {
             return red
         }
 
-        fun Color.colorName(): ColorName = fromDegree(this.Hsl().h)
+        fun Color.colorName(): ColorName = fromDegree(this.hsl().h)
     }
 }

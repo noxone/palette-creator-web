@@ -64,7 +64,7 @@ fun main() {
         }
 
         val setPrimaryColor: Handler<String> = handle { model: PaletteModel, action: String ->
-            Color.Hex(action)
+            Color.hex(action)
                 ?.let { model.setPrimaryColor(primaryColor = it, resetAccentColors = checkAccentColorReset(model)) }
                 ?: model
         }
@@ -96,7 +96,7 @@ fun main() {
         }
 
         val copyColorToClipboard: Handler<Color> = handle { model: PaletteModel, color: Color ->
-            copyToClipboard(color.Hex())
+            copyToClipboard(color.hex())
             model
         }
     }
@@ -121,7 +121,7 @@ fun main() {
                         width = 2.5,
                         height = 2.8,
                         colors = (0..<colorCount).map {
-                            Color.HSLuv(
+                            Color.hsluv(
                                 h = 290.0 / colorCount * it,
                                 s = 0.1 + 0.85 / colorCount * it,
                                 l = 0.7
@@ -167,7 +167,7 @@ fun main() {
                                     type("color")
                                     inlineStyle("opacity:0;")
                                     id("on-primary-color-picker")
-                                    value(colorStore.data.map { it.primaryColor.Hex() })
+                                    value(colorStore.data.map { it.primaryColor.hex() })
                                     changes.values() handledBy colorStore.setPrimaryColor
                                 }
                             }
@@ -188,7 +188,7 @@ fun main() {
                     div {
                         className("col-span-4 w-full h-full")
                         colorStore.data.render(into = this) {
-                            val useBrightTextColor = it.primaryColor.HSLuv().l < 0.65
+                            val useBrightTextColor = it.primaryColor.hsluv().l < 0.65
                             colorBox(
                                 color = it.primaryColor,
                                 textColor = if (useBrightTextColor) it.shadedPrimaryColors.first().color else it.shadedPrimaryColors.last().color
@@ -433,8 +433,8 @@ private fun RenderContext.colorList(width: Double, height: Double, colors: List<
 private fun RenderContext.colorBox(width: Double, height: Double, color: Color, handler: Handler<Color>? = null) =
     div {
         className("flex-auto rounded border border-slate-200 shadow-inner mx-1")
-        inlineStyle("background-color: ${color.Hex()};width: ${width}rem;height: ${height}rem;")
-        title(color.Hex())
+        inlineStyle("background-color: ${color.hex()};width: ${width}rem;height: ${height}rem;")
+        title(color.hex())
 
         handler?.let {
             clicks.map { color } handledBy it
@@ -446,14 +446,14 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null, handl
         className("on-title-font rounded-lg shadow-xl font-thin h-full")
         div {
             className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center")
-            inlineStyle("background-color: ${color.Hex()};${textColor?.let { "color:${it.Hex()};" } ?: ""}")
+            inlineStyle("background-color: ${color.hex()};${textColor?.let { "color:${it.hex()};" } ?: ""}")
             textColor?.let {
                 p {
-                    +color.Hex()
+                    +color.hex()
                 }
                 p {
                     className("ms-2")
-                    val hsl = color.Hsl()
+                    val hsl = color.hsl()
                     +"${hsl.h.format(2)},${hsl.s.format(2)},${hsl.l.format(2)}"
                 }
             }
@@ -464,15 +464,15 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null, handl
         }
     }
 
-private fun Color.Companion.randomPrimary(): Color = HSLuv(
+private fun Color.Companion.randomPrimary(): Color = hsluv(
     h = Random.nextDouble() * 360,
     s = 0.5 + 0.5 * Random.nextDouble(),
     l = 0.5 + 0.35 * Random.nextDouble()
 )
 
 private fun Color.deriveNeutral(): Color {
-    val hsl = HSLuv()
-    return Color.HSLuv(h = hsl.h, s = 0.05, l = 0.5)
+    val hsl = hsluv()
+    return Color.hsluv(h = hsl.h, s = 0.05, l = 0.5)
 }
 
 private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): Color {
@@ -483,7 +483,7 @@ private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): 
             h = nextH()
         }
     }
-    return HSLuv(
+    return hsluv(
         h = h,
         s = 0.001 + 0.1 * Random.nextDouble(),
         l = 0.5
