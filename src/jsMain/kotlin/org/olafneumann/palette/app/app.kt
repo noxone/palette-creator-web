@@ -24,6 +24,7 @@ import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
+import org.w3c.dom.url.URL
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -31,6 +32,29 @@ import kotlin.random.Random
 
 private const val COLOR_COUNT_DIV = 48
 private const val HEADER_ID = "on_header"
+
+private fun createInitialModel(): PaletteModel {
+    val params = URL(document.URL).searchParams
+    val primaryHex = params.get("primary")
+    val neutralHex = params.get("neutral")
+    val accentHexList = params.get("accents")?.split(',')
+
+    return PaletteModel(
+        shadeCount = 7,
+        primaryColor = primaryHex?.let { Color.hex(it) } ?: Color.randomPrimary(),
+        neutralColor = neutralHex?.let { Color.hex(it) } ?: Color.randomNeutral(),
+        accentColors = accentHexList?.let { it.mapNotNull { hex -> Color.hex(hex) } } ?: emptyList(),
+    )
+}
+
+private val URL_CURRENT = URL(window.location.toString())
+private fun URL.toCurrentWindowLocation(): URL {
+    val url = URL(this.toString())
+    url.protocol = URL_CURRENT.protocol
+    url.hostname = URL_CURRENT.hostname
+    url.port = URL_CURRENT.port
+    return url
+}
 
 fun main() {
 
@@ -43,14 +67,27 @@ fun main() {
     }
     val colorStore = object :
         RootStore<PaletteModel>(
-            PaletteModel(
-                shadeCount = 7,
-                primaryColor = Color.randomPrimary(),
-                neutralColor = Color.randomNeutral(),
-                accentColors = emptyList(),
-            ),
+            initialData = createInitialModel(),
             job = Job()
         ) {
+
+        private val queryStringChanger = handle { model: PaletteModel, _: PaletteModel ->
+            val map = mapOf(
+                "primary" to model.primaryColor.hex().substring(1),
+                "neutral" to model.neutralColor.hex().substring(1),
+                "accents" to model.accentColors.joinToString(",") { it.hex().substring(1) }
+            )
+            val localhostUrl = map
+                .map { "${it.key}=${it.value}" }
+                .joinToString(prefix = "http://localhost/?", separator = "&")
+            val url = URL(localhostUrl).toCurrentWindowLocation()
+            window.history.replaceState(data = null, title = document.title, url = url.search)
+            model
+        }
+
+        init {
+            data handledBy queryStringChanger
+        }
 
         private fun checkAccentColorReset(model: PaletteModel): Boolean {
             val hasAccentColorsDefined = model.accentColors.isNotEmpty()
@@ -69,7 +106,10 @@ fun main() {
                 ?: model
         }
         val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            model.setPrimaryColor(primaryColor = Color.randomPrimary(), resetAccentColors = checkAccentColorReset(model))
+            model.setPrimaryColor(
+                primaryColor = Color.randomPrimary(),
+                resetAccentColors = checkAccentColorReset(model)
+            )
         }
         val deriveNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.copy(neutralColor = model.primaryColor.deriveNeutral())
@@ -287,7 +327,8 @@ fun main() {
                                     width = 2.5,
                                     height = 2.5,
                                     it.shadedNeutralColors.map { sc -> sc.color },
-                                    handler = colorStore.copyColorToClipboard)
+                                    handler = colorStore.copyColorToClipboard
+                                )
                             }
                         }
                     }
@@ -342,7 +383,7 @@ fun main() {
                                             height = 2.5,
                                             shades.map { sc -> sc.color },
                                             handler = colorStore.copyColorToClipboard
-                                            )
+                                        )
                                     }
                                     button {
                                         type("button")
@@ -422,7 +463,12 @@ private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
         content()
     }
 
-private fun RenderContext.colorList(width: Double, height: Double, colors: List<Color>, handler: Handler<Color>? = null) =
+private fun RenderContext.colorList(
+    width: Double,
+    height: Double,
+    colors: List<Color>,
+    handler: Handler<Color>? = null
+) =
     div {
         className("flex flex-row justify-around justify-items-center")
         colors.forEach {
