@@ -2,11 +2,14 @@ package org.olafneumann.palette.app
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
+import dev.fritz2.core.IdProvider
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
+import dev.fritz2.core.max
+import dev.fritz2.core.min
 import dev.fritz2.core.render
 import dev.fritz2.core.title
 import dev.fritz2.core.type
@@ -21,7 +24,9 @@ import org.olafneumann.palette.colors.ColorName
 import org.olafneumann.palette.colors.contrast
 import org.olafneumann.palette.js.copyToClipboard
 import org.olafneumann.palette.model.PaletteModel
+import org.olafneumann.palette.model.ShadeList
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
@@ -32,6 +37,8 @@ import kotlin.random.Random
 
 private const val COLOR_COUNT_DIV = 48
 private const val HEADER_ID = "on_header"
+private const val SHADES_MIN = 5
+private const val SHADES_MAX = 15
 
 private fun createInitialModel(): PaletteModel {
     val params = URL(document.URL).searchParams
@@ -65,7 +72,7 @@ fun main() {
             width / COLOR_COUNT_DIV
         }
     }
-    val colorStore = object :
+    val modelStore = object :
         RootStore<PaletteModel>(
             initialData = createInitialModel(),
             job = Job()
@@ -126,9 +133,10 @@ fun main() {
         val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.addRandomAccentColor()
         }
-        val removeAccentColor: Handler<Int> = handle { model: PaletteModel, index: Int ->
-            model.copy(accentColors = model.accentColors - model.accentColors[index])
+        val removeAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
+            model.copy(accentColors = model.accentColors - color)
         }
+        val updateShadeCount: Handler<Int> = handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
 
         val downloadStuff: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             // TODO: implement stuff
@@ -207,8 +215,8 @@ fun main() {
                                     type("color")
                                     inlineStyle("opacity:0;")
                                     id("on-primary-color-picker")
-                                    value(colorStore.data.map { it.primaryColor.hex() })
-                                    changes.values() handledBy colorStore.setPrimaryColor
+                                    value(modelStore.data.map { it.primaryColor.hex() })
+                                    changes.values() handledBy modelStore.setPrimaryColor
                                 }
                             }
                         }
@@ -221,17 +229,17 @@ fun main() {
                             type("button")
                             className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
                             +"Randomize Color"
-                            clicks handledBy colorStore.randomizePrimaryColor
+                            clicks handledBy modelStore.randomizePrimaryColor
                         }
                     }
 
                     div {
                         className("col-span-4 w-full h-full")
-                        colorStore.data.render(into = this) {
+                        modelStore.data.render(into = this) {
                             val useBrightTextColor = it.primaryColor.hsluv().l < 0.65
                             colorBox(
                                 color = it.primaryColor,
-                                textColor = if (useBrightTextColor) it.shadedPrimaryColors.first().color else it.shadedPrimaryColors.last().color
+                                textColor = if (useBrightTextColor) it.primaryColorShadeList.lightestColor else it.primaryColorShadeList.darkestColor
                             )
                         }
                     }
@@ -242,15 +250,15 @@ fun main() {
                             +"The currently selected color would bring the first set of nice shades for your palette:"
                         }
                         div {
-                            colorStore.data.render(into = this) {
+                            modelStore.data.map { it.primaryColorShadeList.colors }.render(into = this) { colors ->
                                 className("border rounded-lg p-2 mt-2 shadow-inner")
                                 inlineStyle("max-width:46rem;")
 
                                 colorList(
                                     width = 2.5,
                                     height = 2.5,
-                                    it.shadedPrimaryColors.map { sc -> sc.color },
-                                    handler = colorStore.copyColorToClipboard
+                                    colors,
+                                    handler = modelStore.copyColorToClipboard
                                 )
                             }
                         }
@@ -274,36 +282,36 @@ fun main() {
                             type("button")
                             className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
                             +"Derived from primary"
-                            clicks handledBy colorStore.deriveNeutralColor
+                            clicks handledBy modelStore.deriveNeutralColor
                         }
                         button {
                             type("button")
                             className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
                             +"Random warm"
-                            clicks handledBy colorStore.randomizeWarmNeutralColor
+                            clicks handledBy modelStore.randomizeWarmNeutralColor
                         }
                         button {
                             type("button")
                             className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
                             +"Random cold"
-                            clicks handledBy colorStore.randomizeColdNeutralColor
+                            clicks handledBy modelStore.randomizeColdNeutralColor
                         }
                         button {
                             type("button")
                             className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
                             +"Completely random"
-                            clicks handledBy colorStore.randomizeNeutralColor
+                            clicks handledBy modelStore.randomizeNeutralColor
                         }
                     }
 
                     div {
                         className("col-span-4 w-full h-full")
 
-                        colorStore.data.render(into = this) {
+                        modelStore.data.render(into = this) {
                             div {
                                 colorBox(
                                     color = it.neutralColor,
-                                    textColor = it.shadedNeutralColors.first().color
+                                    textColor = it.neutralColorShadeList.lightestColor
                                 )
                             }
 
@@ -319,15 +327,15 @@ fun main() {
                             +"The neutral shades would look like this:"
                         }
                         div {
-                            colorStore.data.render(into = this) {
+                            modelStore.data.map { it.neutralColorShadeList.colors }.render(into = this) { colors ->
                                 className("border rounded-lg p-2 mt-2 shadow-inner")
                                 inlineStyle("max-width:46rem;")
 
                                 colorList(
                                     width = 2.5,
                                     height = 2.5,
-                                    it.shadedNeutralColors.map { sc -> sc.color },
-                                    handler = colorStore.copyColorToClipboard
+                                    colors,
+                                    handler = modelStore.copyColorToClipboard
                                 )
                             }
                         }
@@ -350,7 +358,7 @@ fun main() {
                             type("button")
                             className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
                             +"Add fitting accent color"
-                            clicks handledBy colorStore.addRandomAccentColor
+                            clicks handledBy modelStore.addRandomAccentColor
                         }
                         button {
                             type("button")
@@ -361,35 +369,32 @@ fun main() {
                     }
 
                     div {
-                        colorStore.data.renderIf(predicate = { it.shadedAccentColors.isNotEmpty() }, into = this) {
-                            className(" col-span-12 mt-3 pt-3")
-                            className(
-                                colorStore.data.map { it.shadedAccentColors.isNotEmpty() },
-                                false
-                            ) { if (it) "border-t" else "" }
-                            p {
-                                +"The accent shades would look like this:"
-                            }
-                            colorStore.data.map { it.shadedAccentColors }.renderEach { shades ->
-                                val index = it.shadedAccentColors.indexOf(shades)
+                        className(" col-span-12 mt-3 pt-3")
+                        className(
+                            modelStore.data.map { it.accentColorsShadeLists.isNotEmpty() },
+                            false
+                        ) { if (it) "border-t" else "hidden" }
+                        p {
+                            +"The accent shades would look like this:"
+                        }
+                        modelStore.data.map { it.accentColorsShadeLists }.renderEach(idProvider = { "${it.baseColor.hex().substring(1)}-${it.shades.count()}" }) { shadeList ->
+                            div {
+                                className("flex flex-row")
                                 div {
-                                    className("flex flex-row")
-                                    div {
-                                        className("border rounded-lg p-2 mt-2 shadow-inner")
-                                        inlineStyle("max-width:46rem;")
+                                    className("border rounded-lg p-2 mt-2 shadow-inner")
+                                    inlineStyle("max-width:46rem;")
 
-                                        colorList(
-                                            width = 2.5,
-                                            height = 2.5,
-                                            shades.map { sc -> sc.color },
-                                            handler = colorStore.copyColorToClipboard
-                                        )
-                                    }
-                                    button {
-                                        type("button")
-                                        +"D"
-                                        clicks.map { index } handledBy colorStore.removeAccentColor
-                                    }
+                                    colorList(
+                                        width = 2.5,
+                                        height = 2.5,
+                                        shadeList.colors,
+                                        handler = modelStore.copyColorToClipboard
+                                    )
+                                }
+                                button {
+                                    type("button")
+                                    +"D"
+                                    clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor
                                 }
                             }
                         }
@@ -408,11 +413,41 @@ fun main() {
 
             section(
                 number = 5,
+                title = "Options",
+            ) {
+                h3 {
+                    +"Shade count"
+                }
+                p {
+                    +"This is the number of different shades this page will generate for you:"
+                }
+                div {
+                    label {
+                        className("block mb-2 text-sm font-medium text-gray-900 dark:text-white")
+                        `for`("shade-count")
+                        modelStore.data.map { it.shadeCount }.renderText(into = this)
+                    }
+                    input {
+                        className("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700")
+                        id("shade-count")
+                        type("range")
+                        min(SHADES_MIN.toString())
+                        max(SHADES_MAX.toString())
+                        value(modelStore.data.map { it.shadeCount.toString() })
+                        changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
+                    }
+                    //<label for="minmax-range" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Min-max range</label>
+                    //<input id="minmax-range" type="range" min="0" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                }
+            }
+
+            section(
+                number = 6,
                 title = "Download",
             ) {
                 button {
                     type("button")
-                    clicks handledBy colorStore.downloadStuff
+                    clicks handledBy modelStore.downloadStuff
                     +"Download"
                 }
             }
