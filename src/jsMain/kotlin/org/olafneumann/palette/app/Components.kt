@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLLabelElement
+import org.w3c.dom.events.MouseEvent
 
 
 fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: String) =
@@ -83,6 +84,38 @@ fun RenderContext.warningToast(text: String) =
                     attr("stroke-linecap", "round")
                     attr("stroke-linejoin", "round")
                     attr("stroke-width", "2")
+                }
+            }
+        }
+    }
+
+data class Button(
+    val text: String,
+    val handler: Handler<MouseEvent>? = null,
+)
+
+fun RenderContext.buttonGroup(buttons: List<Button>) =
+    div {
+        className("inline-flex rounded-md shadow-sm")
+
+        for (button in buttons) {
+            button {
+                type("button")
+                val classes = mutableListOf("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
+                    "hover:bg-gray-100 hover:text-blue-700",
+                    "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
+                    "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
+                    "dark:hover:text-white dark:hover:bg-gray-700",
+                    "dark:focus:ring-blue-500 dark:focus:text-white")
+                if (button == buttons.first()) {
+                    classes.add("rounded-s-lg")
+                } else if (button == buttons.last()) {
+                    classes.add("rounded-e-lg")
+                }
+                classList(classes)
+                +button.text
+                button.handler?.let {
+                    clicks handledBy it
                 }
             }
         }
