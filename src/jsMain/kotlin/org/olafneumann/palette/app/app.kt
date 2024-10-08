@@ -2,10 +2,11 @@ package org.olafneumann.palette.app
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
-import dev.fritz2.core.IdProvider
+import dev.fritz2.core.Id
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
+import dev.fritz2.core.checked
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.max
@@ -18,15 +19,17 @@ import dev.fritz2.core.values
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorName
+import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.contrast
 import org.olafneumann.palette.js.copyToClipboard
 import org.olafneumann.palette.model.PaletteModel
-import org.olafneumann.palette.model.ShadeList
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLLabelElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
@@ -47,8 +50,9 @@ private fun createInitialModel(): PaletteModel {
     val accentHexList = params.get("accents")?.split(',')
 
     return PaletteModel(
-        shadeCount = 7,
+        shadeCount = 7, // TODO: read from params
         primaryColor = primaryHex?.let { Color.hex(it) } ?: Color.randomPrimary(),
+        enforcePrimaryColorInShades = true, // TODO: read from params
         neutralColor = neutralHex?.let { Color.hex(it) } ?: Color.randomNeutral(),
         accentColors = accentHexList?.let { it.mapNotNull { hex -> Color.hex(hex) } } ?: emptyList(),
     )
@@ -111,6 +115,9 @@ fun main() {
             Color.hex(action)
                 ?.let { model.setPrimaryColor(primaryColor = it, resetAccentColors = checkAccentColorReset(model)) }
                 ?: model
+        }
+        val setPrimaryEnsurance: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
+            model.copy(enforcePrimaryColorInShades = action)
         }
         val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.setPrimaryColor(
@@ -199,38 +206,43 @@ fun main() {
                     className("grid grid-cols-12")
 
                     div {
-                        className("inline-flex rounded-md shadow-sm col-span-8")
-                        label {
-                            className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                            inlineStyle("position:relative;")
-                            `for`("on-primary-color-picker")
-                            div {
-                                className("flex flex-wrap content-center justify-center h-full")
-                                +"Color Picker"
-                            }
-                            div {
-                                className("flex flex-wrap content-center justify-center z-0")
-                                inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
-                                input {
-                                    type("color")
-                                    inlineStyle("opacity:0;")
-                                    id("on-primary-color-picker")
-                                    value(modelStore.data.map { it.primaryColor.hex() })
-                                    changes.values() handledBy modelStore.setPrimaryColor
+                        className("col-span-8")
+                        div {
+                            className("inline-flex")
+                            label {
+                                className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                inlineStyle("position:relative;")
+                                `for`("on-primary-color-picker")
+                                div {
+                                    className("flex flex-wrap content-center justify-center h-full")
+                                    +"Color Picker"
+                                }
+                                div {
+                                    className("flex flex-wrap content-center justify-center z-0")
+                                    inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
+                                    input {
+                                        type("color")
+                                        inlineStyle("opacity:0;")
+                                        id("on-primary-color-picker")
+                                        value(modelStore.data.map { it.primaryColor.hex() })
+                                        changes.values() handledBy modelStore.setPrimaryColor
+                                    }
                                 }
                             }
+                            button {
+                                type("button")
+                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                +"Enter hex RGB"
+                            }
+                            button {
+                                type("button")
+                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                +"Randomize Color"
+                                clicks handledBy modelStore.randomizePrimaryColor
+                            }
                         }
-                        button {
-                            type("button")
-                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                            +"Enter hex RGB"
-                        }
-                        button {
-                            type("button")
-                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                            +"Randomize Color"
-                            clicks handledBy modelStore.randomizePrimaryColor
-                        }
+
+                        checkbox(modelStore.data.map { it.enforcePrimaryColorInShades }, handler = modelStore.setPrimaryEnsurance, label = "Make sure, the primary color is part of the generated shades.")
                     }
 
                     div {
@@ -250,7 +262,7 @@ fun main() {
                             +"The currently selected color would bring the first set of nice shades for your palette:"
                         }
                         div {
-                            modelStore.data.map { it.primaryColorShadeList.colors }.render(into = this) { colors ->
+                            modelStore.data.map { it.primaryColorShadeList.shadedColors }.render(into = this) { colors ->
                                 className("border rounded-lg p-2 mt-2 shadow-inner")
                                 inlineStyle("max-width:46rem;")
 
@@ -327,7 +339,7 @@ fun main() {
                             +"The neutral shades would look like this:"
                         }
                         div {
-                            modelStore.data.map { it.neutralColorShadeList.colors }.render(into = this) { colors ->
+                            modelStore.data.map { it.neutralColorShadeList.shadedColors }.render(into = this) { colors ->
                                 className("border rounded-lg p-2 mt-2 shadow-inner")
                                 inlineStyle("max-width:46rem;")
 
@@ -377,7 +389,7 @@ fun main() {
                         p {
                             +"The accent shades would look like this:"
                         }
-                        modelStore.data.map { it.accentColorsShadeLists }.renderEach(idProvider = { "${it.baseColor.hex().substring(1)}-${it.shades.count()}" }) { shadeList ->
+                        modelStore.data.map { it.accentColorsShadeLists }.renderEach(idProvider = { "${it.baseColor.hex().substring(1)}-${it.shadedColors.count()}" }) { shadeList ->
                             div {
                                 className("flex flex-row")
                                 div {
@@ -387,7 +399,7 @@ fun main() {
                                     colorList(
                                         width = 2.5,
                                         height = 2.5,
-                                        shadeList.colors,
+                                        shadeList.shadedColors,
                                         handler = modelStore.copyColorToClipboard
                                     )
                                 }
@@ -416,10 +428,9 @@ fun main() {
                 title = "Options",
             ) {
                 h3 {
-                    +"Shade count"
-                }
-                p {
-                    +"This is the number of different shades this page will generate for you:"
+                    modelStore.data.map { it.shadeCount }.render(into = this) {
+                        +"Shade count: $it"
+                    }
                 }
                 div {
                     label {
@@ -436,8 +447,6 @@ fun main() {
                         value(modelStore.data.map { it.shadeCount.toString() })
                         changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
                     }
-                    //<label for="minmax-range" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Min-max range</label>
-                    //<input id="minmax-range" type="range" min="0" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                 }
             }
 
@@ -454,6 +463,32 @@ fun main() {
         }
     }
 }
+
+private fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: String) =
+    checkbox(value = value, handler = handler) { +label }
+
+private fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: HtmlTag<HTMLLabelElement>.() -> Unit) =
+    div {
+        val id = Id.next()
+        className("flex items-start mb-6")
+        div {
+            className("flex-items-center h-5")
+            input {
+                className("w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800")
+                id(id)
+                type("checkbox")
+                checked(value)
+                handler?.let { handler ->
+                    changes.map { event -> event.target.unsafeCast<HTMLInputElement>().checked } handledBy handler
+                }
+            }
+        }
+        label {
+            className("ms-2 text-sm font-medium text-gray-900 dark:text-gray-300")
+            `for`(id)
+            label()
+        }
+    }
 
 private fun RenderContext.section(
     number: Int,
@@ -501,25 +536,36 @@ private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
 private fun RenderContext.colorList(
     width: Double,
     height: Double,
-    colors: List<Color>,
+    colors: List<ShadeList.ShadedColor>,
     handler: Handler<Color>? = null
 ) =
     div {
         className("flex flex-row justify-around justify-items-center")
-        colors.forEach {
-            colorBox(width = width, height = height, color = it, handler = handler)
+        colors.forEach { color ->
+            val div = colorBox(width = width, height = height, hex = color.color.hex(), text = "${color.color.hex()} - ${color.shade.format(2)}")
+            handler?.let { div.clicks.map { color.color } handledBy it }
         }
     }
 
-private fun RenderContext.colorBox(width: Double, height: Double, color: Color, handler: Handler<Color>? = null) =
+
+private fun RenderContext.colorList(
+    width: Double,
+    height: Double,
+    colors: List<Color>
+) =
+    div {
+        className("flex flex-row justify-around justify-items-center")
+        colors.forEach { color ->
+            colorBox(width = width, height = height, hex = color.hex())
+        }
+    }
+
+private fun RenderContext.colorBox(width: Double, height: Double, hex: String, text: String? = null) =
     div {
         className("flex-auto rounded border border-slate-200 shadow-inner mx-1")
-        inlineStyle("background-color: ${color.hex()};width: ${width}rem;height: ${height}rem;")
-        title(color.hex())
-
-        handler?.let {
-            clicks.map { color } handledBy it
-        }
+        inlineStyle("background-color: ${hex};width: ${width}rem;height: ${height}rem;")
+        title(hex)
+        text?.let { +it }
     }
 
 private fun RenderContext.colorBox(color: Color, textColor: Color? = null, handler: Handler<Color>? = null) =
@@ -534,7 +580,7 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null, handl
                 }
                 p {
                     className("ms-2")
-                    val hsl = color.hsl()
+                    val hsl = color.hsluv()
                     +"${hsl.h.format(2)},${hsl.s.format(2)},${hsl.l.format(2)}"
                 }
             }
