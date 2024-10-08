@@ -6,7 +6,7 @@ import org.olafneumann.palette.colors.GOLDEN_ANGLE
 import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.rotate
 
-@Lenses
+// @Lenses
 data class PaletteModel(
     val shadeCount: Int,
     val primaryColor: Color,
@@ -18,9 +18,11 @@ data class PaletteModel(
     // TODO: Improve way to generate accent colors!
     private val proposedAccentColor: Color get() = (accentColors.lastOrNull() ?: primaryColor).rotate(GOLDEN_ANGLE * accentColorSeed)
 
-    val primaryColorShadeList = ShadeList(baseColor = primaryColor, shadeCount = shadeCount, ensureColorIsIncluded = enforcePrimaryColorInShades)// primaryColor.createShades(shadeCount)
-    val neutralColorShadeList = ShadeList(baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, ensureColorIsIncluded = false) //: List<ShadedColor> = neutralColor.createShades(shadeCount, min = 0.05, max = 0.95)
-    val accentColorsShadeLists = accentColors.map { ShadeList(it, shadeCount, ensureColorIsIncluded = enforcePrimaryColorInShades) } //:List<List<ShadedColor>> = accentColors.map { it.createShades(shadeCount) }
+    val primaryColorShadeList = ShadeList(baseColor = primaryColor, shadeCount = shadeCount, ensureColorIsIncluded = enforcePrimaryColorInShades)
+    val neutralColorShadeList = ShadeList(baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, ensureColorIsIncluded = false)
+    val accentColorsShadeLists = accentColors.map { ShadeList(it, shadeCount, ensureColorIsIncluded = enforcePrimaryColorInShades) }
+
+    val isPrimaryColorSaturatedEnough = primaryColor.hsluv().s >= PRIMARY_MIN_SATURATION
 
     fun setPrimaryColor(primaryColor: Color, resetAccentColors: Boolean) =
         copy(
@@ -36,5 +38,6 @@ data class PaletteModel(
 
     companion object {
         private const val ACCENT_COLOR_SEED_INIT = 1
+        private const val PRIMARY_MIN_SATURATION = 0.3
     }
 }
