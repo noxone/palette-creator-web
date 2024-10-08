@@ -64,12 +64,12 @@ data class ShadeList(
             )
             val upperShades = createShades(
                 forColor = forColor,
-                shadeCount = shadeCount - closestIndex - 1,
-                min = computedShades[closestIndex + 1],
+                shadeCount = shadeCount - closestIndex,
+                min = lightness,
                 max = max,
                 ensureColorIsIncluded = false,
-            )
-            return lowerShades /*+ createShades(forColor = forColor, values = listOf(lightness))*/ + upperShades
+            ).drop(1)
+            return lowerShades + upperShades
         }
 
         private fun createShades(forColor: Color, values: List<Double>): List<ShadedColor> {
