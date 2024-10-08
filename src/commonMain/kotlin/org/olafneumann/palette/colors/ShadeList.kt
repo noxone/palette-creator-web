@@ -7,7 +7,7 @@ data class ShadeList(
     val baseColor: Color,
     val shadedColors: List<ShadedColor>
 ) {
-    constructor(baseColor: Color, shadeCount: Int, min: Double = 0.1, max: Double = 0.9, ensureColorIsIncluded: Boolean)
+    constructor(baseColor: Color, shadeCount: Int, min: Double = 0.1, max: Double = 0.9, enforceColorInShades: Boolean)
             : this(
         baseColor = baseColor,
         shadedColors = createShades(
@@ -15,7 +15,7 @@ data class ShadeList(
             shadeCount = shadeCount,
             min = min,
             max = max,
-            ensureColorIsIncluded = ensureColorIsIncluded
+            ensureColorIsIncluded = enforceColorInShades
         )
     )
 

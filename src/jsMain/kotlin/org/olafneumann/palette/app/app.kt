@@ -2,13 +2,9 @@ package org.olafneumann.palette.app
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
-import dev.fritz2.core.Id
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
-import dev.fritz2.core.checked
-import dev.fritz2.core.d
-import dev.fritz2.core.fill
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.max
@@ -18,11 +14,9 @@ import dev.fritz2.core.title
 import dev.fritz2.core.type
 import dev.fritz2.core.value
 import dev.fritz2.core.values
-import dev.fritz2.core.viewBox
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorName
@@ -32,7 +26,6 @@ import org.olafneumann.palette.js.copyToClipboard
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLLabelElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
@@ -119,7 +112,7 @@ fun main() {
                 ?.let { model.setPrimaryColor(primaryColor = it, resetAccentColors = checkAccentColorReset(model)) }
                 ?: model
         }
-        val setPrimaryEnsurance: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
+        val setPrimaryColorEnforcedInShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
             model.copy(enforcePrimaryColorInShades = action)
         }
         val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
@@ -245,52 +238,10 @@ fun main() {
                             }
                         }
 
-                        checkbox(modelStore.data.map { it.enforcePrimaryColorInShades }, handler = modelStore.setPrimaryEnsurance, label = "Make sure, the primary color is part of the generated shades.")
+                        checkbox(modelStore.data.map { it.enforcePrimaryColorInShades }, handler = modelStore.setPrimaryColorEnforcedInShades, label = "Make sure, the primary color is part of the generated shades.")
 
-                        modelStore.data.map { it.isPrimaryColorSaturatedEnough }.renderFalse {
-                            div {
-                                className("flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800")
-                                div {
-                                    className("inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-700 dark:text-orange-200")
-                                    svg {
-                                        className("w-5 h-5")
-                                        xmlns("http://www.w3.org/2000/svg")
-                                        viewBox("0 0 20 20")
-                                        path {
-                                            d("M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z")
-                                        }
-                                        span {
-                                            className("sr-only")
-                                            +"Warning icon"
-                                        }
-                                    }
-                                }
-                                div {
-                                    className("ms-3 text-sm font-normal")
-                                    +"The saturation of the main color is quite low. This might not be a problem, but we propose to use a color with some more saturation as primary color."
-                                }
-                                button {
-                                    className("ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700")
-                                    type("button")
-                                    span {
-                                        className("sr-only")
-                                        +"Close"
-                                    }
-                                    svg {
-                                        className("h-3 w-3")
-                                        xmlns("http://www.w3.org/2000/svg")
-                                        fill("none")
-                                        viewBox("0 0 14 14")
-                                        path {
-                                            d("m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6")
-                                            attr("stroke", "currentColor")
-                                            attr("stroke-linecap", "round")
-                                            attr("stroke-linejoin", "round")
-                                            attr("stroke-width", "2")
-                                        }
-                                    }
-                                }
-                            }
+                        modelStore.data.map { it.isPrimaryColorSaturationHighEnough }.renderFalse {
+                            warningToast("The saturation of the main color is quite low. This might not be a problem, but we propose to use a color with some more saturation as primary color.")
                         }
                     }
 
@@ -338,30 +289,37 @@ fun main() {
                 div {
                     className("grid grid-cols-12")
                     div {
-                        className("col-span-8 inline-flex rounded-md shadow-sm")
-                        button {
-                            type("button")
-                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                            +"Derived from primary"
-                            clicks handledBy modelStore.deriveNeutralColor
+                        className("col-span-8")
+                        div {
+                            className("inline-flex rounded-md shadow-sm")
+                            button {
+                                type("button")
+                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                +"Derived from primary"
+                                clicks handledBy modelStore.deriveNeutralColor
+                            }
+                            button {
+                                type("button")
+                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                +"Random warm"
+                                clicks handledBy modelStore.randomizeWarmNeutralColor
+                            }
+                            button {
+                                type("button")
+                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                +"Random cold"
+                                clicks handledBy modelStore.randomizeColdNeutralColor
+                            }
+                            button {
+                                type("button")
+                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
+                                +"Completely random"
+                                clicks handledBy modelStore.randomizeNeutralColor
+                            }
                         }
-                        button {
-                            type("button")
-                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                            +"Random warm"
-                            clicks handledBy modelStore.randomizeWarmNeutralColor
-                        }
-                        button {
-                            type("button")
-                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                            +"Random cold"
-                            clicks handledBy modelStore.randomizeColdNeutralColor
-                        }
-                        button {
-                            type("button")
-                            className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                            +"Completely random"
-                            clicks handledBy modelStore.randomizeNeutralColor
+
+                        modelStore.data.map { it.isNeutralColorSaturationLowEnough }.renderFalse {
+                            warningToast("The neutral color has a quite high saturation. We would suggest to choose a color with a lower saturation.")
                         }
                     }
 
@@ -513,31 +471,6 @@ fun main() {
     }
 }
 
-private fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: String) =
-    checkbox(value = value, handler = handler) { +label }
-
-private fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: HtmlTag<HTMLLabelElement>.() -> Unit) =
-    div {
-        val id = Id.next()
-        className("flex items-start mb-6")
-        div {
-            className("flex-items-center h-5")
-            input {
-                className("w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800")
-                id(id)
-                type("checkbox")
-                checked(value)
-                handler?.let { handler ->
-                    changes.map { event -> event.target.unsafeCast<HTMLInputElement>().checked } handledBy handler
-                }
-            }
-        }
-        label {
-            className("ms-2 text-sm font-medium text-gray-900 dark:text-gray-300")
-            `for`(id)
-            label()
-        }
-    }
 
 private fun RenderContext.section(
     number: Int,
@@ -647,8 +580,7 @@ private fun Color.Companion.randomPrimary(): Color = hsluv(
 )
 
 private fun Color.deriveNeutral(): Color {
-    val hsl = hsluv()
-    return Color.hsluv(h = hsl.h, s = 0.05, l = 0.5)
+    return Color.hsluv(h = hsluv().h, s = 0.05, l = 0.5)
 }
 
 private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): Color {

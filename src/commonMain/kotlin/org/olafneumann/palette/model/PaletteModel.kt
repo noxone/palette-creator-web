@@ -1,6 +1,5 @@
 package org.olafneumann.palette.model
 
-import dev.fritz2.core.Lenses
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.GOLDEN_ANGLE
 import org.olafneumann.palette.colors.ShadeList
@@ -18,11 +17,12 @@ data class PaletteModel(
     // TODO: Improve way to generate accent colors!
     private val proposedAccentColor: Color get() = (accentColors.lastOrNull() ?: primaryColor).rotate(GOLDEN_ANGLE * accentColorSeed)
 
-    val primaryColorShadeList = ShadeList(baseColor = primaryColor, shadeCount = shadeCount, ensureColorIsIncluded = enforcePrimaryColorInShades)
-    val neutralColorShadeList = ShadeList(baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, ensureColorIsIncluded = false)
-    val accentColorsShadeLists = accentColors.map { ShadeList(it, shadeCount, ensureColorIsIncluded = enforcePrimaryColorInShades) }
+    val primaryColorShadeList = ShadeList(baseColor = primaryColor, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades)
+    val neutralColorShadeList = ShadeList(baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, enforceColorInShades = false)
+    val accentColorsShadeLists = accentColors.map { ShadeList(it, shadeCount, enforceColorInShades = enforcePrimaryColorInShades) }
 
-    val isPrimaryColorSaturatedEnough = primaryColor.hsluv().s >= PRIMARY_MIN_SATURATION
+    val isPrimaryColorSaturationHighEnough = primaryColor.hsluv().s >= PRIMARY_MIN_SATURATION
+    val isNeutralColorSaturationLowEnough = neutralColor.hsluv().s < NEUTRAL_MAX_SATURATION
 
     fun setPrimaryColor(primaryColor: Color, resetAccentColors: Boolean) =
         copy(
@@ -39,5 +39,6 @@ data class PaletteModel(
     companion object {
         private const val ACCENT_COLOR_SEED_INIT = 1
         private const val PRIMARY_MIN_SATURATION = 0.3
+        private const val NEUTRAL_MAX_SATURATION = 0.15
     }
 }
