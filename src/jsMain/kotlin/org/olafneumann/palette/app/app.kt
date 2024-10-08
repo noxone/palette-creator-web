@@ -19,6 +19,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.colorful.Color
+import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.ColorName
 import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.contrast
@@ -47,9 +48,9 @@ private fun createInitialModel(): PaletteModel {
 
     return PaletteModel(
         shadeCount = 7, // TODO: read from params
-        primaryColor = primaryHex?.let { Color.hex(it) } ?: Color.randomPrimary(),
+        primaryColor = primaryHex?.let { Color.hex(it) } ?: ColorGenerator.randomPrimary(),
         enforcePrimaryColorInShades = true, // TODO: read from params
-        neutralColor = neutralHex?.let { Color.hex(it) } ?: Color.randomNeutral(),
+        neutralColor = neutralHex?.let { Color.hex(it) } ?: ColorGenerator.randomNeutral(),
         accentColors = accentHexList?.let { it.mapNotNull { hex -> Color.hex(hex) } } ?: emptyList(),
     )
 }
@@ -117,21 +118,21 @@ fun main() {
         }
         val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.setPrimaryColor(
-                primaryColor = Color.randomPrimary(),
+                primaryColor = ColorGenerator.randomPrimary(),
                 resetAccentColors = checkAccentColorReset(model)
             )
         }
         val deriveNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            model.copy(neutralColor = model.primaryColor.deriveNeutral())
+            model.copy(neutralColor = ColorGenerator.deriveNeutral(from = model.primaryColor))
         }
         val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            model.copy(neutralColor = Color.randomNeutral(ColorName.red, ColorName.yellow, ColorName.orange))
+            model.copy(neutralColor = ColorGenerator.randomNeutral(ColorName.red, ColorName.yellow, ColorName.orange))
         }
         val randomizeColdNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            model.copy(neutralColor = Color.randomNeutral(ColorName.blue, ColorName.aqua))
+            model.copy(neutralColor = ColorGenerator.randomNeutral(ColorName.blue, ColorName.aqua))
         }
         val randomizeNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            model.copy(neutralColor = Color.randomNeutral())
+            model.copy(neutralColor = ColorGenerator.randomNeutral())
         }
         val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.addRandomAccentColor()
@@ -524,31 +525,6 @@ private fun RenderContext.colorBox(color: Color, textColor: Color? = null, handl
             }
         }
     }
-
-private fun Color.Companion.randomPrimary(): Color = hsluv(
-    h = Random.nextDouble() * 360,
-    s = 0.5 + 0.5 * Random.nextDouble(),
-    l = 0.5 + 0.35 * Random.nextDouble()
-)
-
-private fun Color.deriveNeutral(): Color {
-    return Color.hsluv(h = hsluv().h, s = 0.05, l = 0.5)
-}
-
-private fun Color.Companion.randomNeutral(vararg allowedColorNames: ColorName): Color {
-    val nextH = { Random.nextDouble() * 360 }
-    var h = nextH()
-    if (allowedColorNames.isNotEmpty()) {
-        while (allowedColorNames.none { ColorName.fromDegree(h) == it }) {
-            h = nextH()
-        }
-    }
-    return hsluv(
-        h = h,
-        s = 0.001 + 0.1 * Random.nextDouble(),
-        l = 0.5
-    )
-}
 
 private fun Double.format(digits: Int) =
     ((10.0.pow(digits) * this).roundToInt().toDouble() / 10.0.pow(digits)).toString()
