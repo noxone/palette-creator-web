@@ -203,40 +203,12 @@ fun main() {
 
                     div {
                         className("col-span-8")
-                        div {
-                            className("inline-flex")
-                            label {
-                                className("z-20 cursor-pointer px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                inlineStyle("position:relative;")
-                                `for`("on-primary-color-picker")
-                                div {
-                                    className("flex flex-wrap content-center justify-center h-full")
-                                    +"Color Picker"
-                                }
-                                div {
-                                    className("flex flex-wrap content-center justify-center z-0")
-                                    inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
-                                    input {
-                                        type("color")
-                                        inlineStyle("opacity:0;")
-                                        id("on-primary-color-picker")
-                                        value(modelStore.data.map { it.primaryColor.hex() })
-                                        changes.values() handledBy modelStore.setPrimaryColor
-                                    }
-                                }
-                            }
-                            button {
-                                type("button")
-                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                +"Enter hex RGB"
-                            }
-                            button {
-                                type("button")
-                                className("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white")
-                                +"Randomize Color"
-                                clicks handledBy modelStore.randomizePrimaryColor
-                            }
-                        }
+
+                        buttonGroup(listOf(
+                            Button(type = ButtonType.colorPicker, text = "Color Picker", value = modelStore.data.map { it.primaryColor.hex() }, textHandler = modelStore.setPrimaryColor),
+                            Button(text = "Enter hex RGB"),
+                            Button(text = "Randomize Color", mouseHandler = modelStore.randomizePrimaryColor),
+                        ))
 
                         checkbox(modelStore.data.map { it.enforcePrimaryColorInShades }, handler = modelStore.setPrimaryColorEnforcedInShades, label = "Make sure, the primary color is part of the generated shades.")
 
@@ -292,10 +264,10 @@ fun main() {
                         className("col-span-8")
 
                         buttonGroup(listOf(
-                            Button("Derived from primary", modelStore.deriveNeutralColor),
-                            Button("Random warm", modelStore.randomizeWarmNeutralColor),
-                            Button("Random cold", modelStore.randomizeColdNeutralColor),
-                            Button("Completely random", modelStore.randomizeNeutralColor),
+                            Button(text = "Derived from primary", mouseHandler = modelStore.deriveNeutralColor),
+                            Button(text = "Random warm", mouseHandler = modelStore.randomizeWarmNeutralColor),
+                            Button(text = "Random cold", mouseHandler = modelStore.randomizeColdNeutralColor),
+                            Button(text = "Completely random", mouseHandler = modelStore.randomizeNeutralColor),
                         ))
 
                         modelStore.data.map { it.isNeutralColorSaturationLowEnough }.renderFalse {

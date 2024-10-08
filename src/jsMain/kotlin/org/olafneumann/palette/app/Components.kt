@@ -10,6 +10,8 @@ import dev.fritz2.core.fill
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.type
+import dev.fritz2.core.value
+import dev.fritz2.core.values
 import dev.fritz2.core.viewBox
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -89,9 +91,16 @@ fun RenderContext.warningToast(text: String) =
         }
     }
 
+enum class ButtonType {
+    button, colorPicker
+}
+
 data class Button(
-    val text: String,
-    val handler: Handler<MouseEvent>? = null,
+    val type: ButtonType = ButtonType.button,
+    val text: String? = null,
+    val value: Flow<String>? = null,
+    val mouseHandler: Handler<MouseEvent>? = null,
+    val textHandler: Handler<String>? = null,
 )
 
 fun RenderContext.buttonGroup(buttons: List<Button>) =
@@ -99,24 +108,56 @@ fun RenderContext.buttonGroup(buttons: List<Button>) =
         className("inline-flex rounded-md shadow-sm")
 
         for (button in buttons) {
-            button {
-                type("button")
-                val classes = mutableListOf("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
-                    "hover:bg-gray-100 hover:text-blue-700",
-                    "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
-                    "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
-                    "dark:hover:text-white dark:hover:bg-gray-700",
-                    "dark:focus:ring-blue-500 dark:focus:text-white")
-                if (button == buttons.first()) {
-                    classes.add("rounded-s-lg")
-                } else if (button == buttons.last()) {
-                    classes.add("rounded-e-lg")
-                }
-                classList(classes)
-                +button.text
-                button.handler?.let {
-                    clicks handledBy it
-                }
+            val classes = mutableListOf("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
+                "hover:bg-gray-100 hover:text-blue-700",
+                "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
+                "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
+                "dark:hover:text-white dark:hover:bg-gray-700",
+                "dark:focus:ring-blue-500 dark:focus:text-white")
+            if (button == buttons.first()) {
+                classes.add("rounded-s-lg")
+            } else if (button == buttons.last()) {
+                classes.add("rounded-e-lg")
+            }
+
+            if (button.type == ButtonType.button) {
+                buttonGroupButton(classes, button)
+            } else if (button.type == ButtonType.colorPicker) {
+                buttonGroupColorPicker(classes, button)
+            }
+        }
+    }
+
+private fun RenderContext.buttonGroupButton(classes: List<String>, button: Button) =
+    button {
+        type("button")
+        classList(classes)
+        button.value?.renderText(into = this)
+        button.text?.let { +it }
+        button.mouseHandler?.let { clicks handledBy it }
+    }
+
+private fun RenderContext.buttonGroupColorPicker(classes: MutableList<String>, button: Button) =
+    label {
+        val id = Id.next()
+        classes.add("z-20 cursor-pointer")//relative
+        classList(classes)
+
+        inlineStyle("position:relative;")
+        `for`(id)
+        div {
+            className("flex flex-wrap content-center justify-center h-full")
+            button.text?.let { +it }
+        }
+        div {
+            className("flex flex-wrap content-center justify-center z-0")
+            inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
+            input {
+                type("color")
+                inlineStyle("opacity:0;")
+                id(id)
+                button.value?.let { value(it) }
+                button.textHandler?.let { changes.values() handledBy it }
             }
         }
     }
