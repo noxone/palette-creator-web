@@ -46,6 +46,9 @@ kotlin {
                 implementation(npm(libs.style.loader))
                 implementation(npm(libs.cssnano))
 
+                // popups
+                implementation(npm("@floating-ui/dom", "1.6.11"))
+
                 // Create downloads
                 implementation(npm("file-saver", "2.0.5"))
                 implementation(npm("jszip", "3.10.1"))

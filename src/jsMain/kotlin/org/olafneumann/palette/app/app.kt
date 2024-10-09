@@ -19,8 +19,9 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.npm.Popper
-import org.olafneumann.palette.app.npm.createPopper
+import org.olafneumann.palette.app.npm.Floater
+import org.olafneumann.palette.app.npm.Options
+import org.olafneumann.palette.app.npm.Placement
 import org.olafneumann.palette.app.ui.Button
 import org.olafneumann.palette.app.ui.ButtonType
 import org.olafneumann.palette.app.ui.bigColorBox
@@ -348,15 +349,26 @@ fun main() {
                     }
 
                     div {
-                        val parentId = Id.next()
-                        val tooltipId = Id.next()
+                        // TODO: Replace Id-Generator by own one...
+                        val parentId = "onid_" + Id.next()
+                        val tooltipId = "onid_" + Id.next()
                         val store: Store<Boolean> = storeOf(true)
 
+                        val floater = Floater(
+                            referenceElementId = parentId,
+                            floatingElementId = tooltipId,
+                            options = Options(placement = Placement.bottomStart)
+                        )
                         val store2 = object : RootStore<Boolean>(true, job = Job()) {
                             val update2: Handler<Boolean> = handle { _, newValue ->
                                 update.invoke(newValue)
                                 if (newValue) {
-                                    Popper.createPopper(parentId, tooltipId)
+                                    console.log("show")
+                                    // TODO: Popper.createPopper(parentId, tooltipId)
+                                    floater.show()
+                                } else {
+                                    console.log("hide")
+                                    floater.hide()
                                 }
                                 newValue
                             }
@@ -370,12 +382,16 @@ fun main() {
 
                             mouseenters.map { true } handledBy store2.update2
                             mouseleaves.map { false } handledBy store2.update2
+                            blurs.map { false } handledBy store2.update2
                         }
 
                         div {
                             id(tooltipId)
                             attr("role", "tooltip")
-                            className("absolute z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800")
+                            classList(listOf(
+                                "on-floating",
+                                "absolute z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
+                            ))
 
                             div {
                                 className("px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700")
