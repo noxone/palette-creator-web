@@ -21,9 +21,9 @@ data class ShadeList(
 
     val colors: List<Color> get() = shadedColors.map { it.color }
 
-    val lightestColor: Color get() = shadedColors.first().color
+    val lightestColor: Color get() = shadedColors.last().color
 
-    val darkestColor: Color get() = shadedColors.last().color
+    val darkestColor: Color get() = shadedColors.first().color
 
     companion object {
         fun createShades(
@@ -51,7 +51,6 @@ data class ShadeList(
             }
 
             val lightness = forColor.hsluv().l
-            val distances = computedShades.mapIndexed { index, d -> index to abs(lightness - d) }
             val closestIndex = computedShades.mapIndexed { index, d -> index to abs(lightness - d) }
                 .minBy { it.second }
                 .first

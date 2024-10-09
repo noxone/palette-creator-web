@@ -1,4 +1,4 @@
-package org.olafneumann.palette.app
+package org.olafneumann.palette.app.ui
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
@@ -26,7 +26,7 @@ fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = nu
 fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: HtmlTag<HTMLLabelElement>.() -> Unit) =
     div {
         val id = Id.next()
-        className("flex items-start mb-6")
+        className("flex items-start")
         div {
             className("flex-items-center h-5")
             input {
@@ -154,6 +154,7 @@ private fun RenderContext.buttonGroupColorPicker(classes: MutableList<String>, b
             inlineStyle("position:absolute;left:0;right:0;top:0;bottom:0;")
             input {
                 type("color")
+                className("cursor-pointer")
                 inlineStyle("opacity:0;")
                 id(id)
                 button.value?.let { value(it) }

@@ -1,4 +1,4 @@
-package org.olafneumann.palette.app
+package org.olafneumann.palette.app.npm
 
 import org.w3c.files.Blob
 import kotlin.js.Promise

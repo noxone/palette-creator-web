@@ -1,4 +1,4 @@
-package org.olafneumann.palette.js
+package org.olafneumann.palette.app.utils
 
 import kotlin.js.Json
 import kotlin.js.json
@@ -18,4 +18,3 @@ fun Map<String, Any?>.toJson(): Json =
             .map { it.key to it.value }
             .toTypedArray()
     )
-

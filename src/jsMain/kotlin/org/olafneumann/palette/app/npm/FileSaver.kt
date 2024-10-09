@@ -1,7 +1,7 @@
 @file:JsModule("file-saver")
 @file:JsNonModule
 
-package org.olafneumann.palette.app
+package org.olafneumann.palette.app.npm
 
 import org.w3c.files.Blob
 
