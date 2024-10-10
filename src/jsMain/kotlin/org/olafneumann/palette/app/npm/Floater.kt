@@ -1,6 +1,7 @@
 package org.olafneumann.palette.app.npm
 
 import kotlinx.browser.document
+import kotlinx.browser.window
 import org.olafneumann.palette.app.utils.toJson
 import org.w3c.dom.HTMLElement
 
@@ -26,7 +27,7 @@ enum class Placement {
 }
 
 data class ShiftOptions(
-    val padding: Int = 0
+    val padding: Int = 0,
 ) {
     private fun toMap(): Map<String, Any> =
         mapOf(
@@ -48,14 +49,24 @@ data class ShiftOptions(
 //}
 
 
-
 class Floater(
     private val referenceElementId: String,
     private val floatingElementId: String,
-    private val options: Options = Options())
-{
+    private val options: Options = Options(),
+) {
     private val referenceElement: HTMLElement by lazy { document.querySelector("#$referenceElementId") as HTMLElement }
     private val floatingElement: HTMLElement by lazy { document.querySelector("#$floatingElementId") as HTMLElement }
+
+    private var timeoutHandle: Int? = null
+
+    init {
+        runLater { initialize() }
+    }
+
+    private fun initialize() {
+        floatingElement.style.display = "none"
+        floatingElement.setOpacity(show = false)
+    }
 
     private fun update() {
         computePosition(referenceElement, floatingElement, options.toJson())
@@ -66,11 +77,42 @@ class Floater(
     }
 
     fun show() {
-        floatingElement.style.display = "block"
+        animateShowHide(show = true)
         update()
     }
 
     fun hide() {
-        floatingElement.style.display = "none"
+        animateShowHide(show = false)
+    }
+
+    private fun animateShowHide(show: Boolean) {
+        if (show) {
+            floatingElement.style.display = "block"
+            runLater {
+                floatingElement.setOpacity(show)
+            }
+        } else {
+            floatingElement.setOpacity(show)
+            runLater(TIMEOUT) {
+                floatingElement.style.display = "none"
+            }
+        }
+    }
+
+    private fun HTMLElement.setOpacity(show: Boolean) {
+        classList.toggle("opacity-0", force = !show)
+        classList.toggle("opacity-1", force = show)
+    }
+
+    private fun runLater(timeout: Int = 1, action: () -> Unit) {
+        timeoutHandle?.let { window.clearTimeout(it) }
+        timeoutHandle = window.setTimeout({
+            action()
+            timeoutHandle = null
+        }, timeout)
+    }
+
+    companion object {
+        private const val TIMEOUT = 300
     }
 }
