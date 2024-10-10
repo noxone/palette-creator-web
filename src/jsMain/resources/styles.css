@@ -26,12 +26,3 @@ body {
 .on-background-color {
     background-color: #000;
 }
-
-.on-floating {
-    width: max-content;
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: none;
-}
-

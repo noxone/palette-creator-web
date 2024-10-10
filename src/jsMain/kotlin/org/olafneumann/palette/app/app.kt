@@ -4,21 +4,18 @@ import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
-import dev.fritz2.core.Store
 import dev.fritz2.core.Window
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.max
 import dev.fritz2.core.min
 import dev.fritz2.core.render
-import dev.fritz2.core.storeOf
 import dev.fritz2.core.type
 import dev.fritz2.core.value
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.npm.Floater
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
 import org.olafneumann.palette.app.ui.Button
@@ -133,10 +130,10 @@ fun main() {
             model.copy(neutralColor = ColorGenerator.deriveNeutral(from = model.primaryColor))
         }
         val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            model.copy(neutralColor = ColorGenerator.randomNeutral(ColorName.red, ColorName.yellow, ColorName.orange))
+            model.copy(neutralColor = ColorGenerator.randomNeutralWarm())
         }
         val randomizeColdNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            model.copy(neutralColor = ColorGenerator.randomNeutral(ColorName.blue, ColorName.aqua))
+            model.copy(neutralColor = ColorGenerator.randomNeutralCold())
         }
         val randomizeNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.copy(neutralColor = ColorGenerator.randomNeutral())
@@ -343,13 +340,18 @@ fun main() {
             ) {
                 div {
                     className("grid grid-cols-12")
+
+                    val tooltipId = IdGenerator.next
+
                     div {
                         className("col-span-12")
                         buttonGroup(
                             listOf(
                                 Button(
                                     text = "Add fitting accent color",
-                                    mouseHandler = modelStore.addRandomAccentColor
+                                    mouseHandler = modelStore.addRandomAccentColor,
+                                    floatingElementId = tooltipId,
+                                    floaterOptions = Options(placement = Placement.bottomStart),
                                 ),
                                 Button(text = "Pick custom accent color")
                             )
@@ -357,33 +359,12 @@ fun main() {
                     }
 
                     div {
-                        // TODO: Replace Id-Generator by own one...
-                        val parentId = IdGenerator.next
-                        val tooltipId = IdGenerator.next
-
-                        val floater = Floater(
-                            referenceElementId = parentId,
-                            floatingElementId = tooltipId,
-                            options = Options(placement = Placement.bottomStart)
-                        )
-
-                        button {
-                            id(parentId)
-                            className("text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800")
-                            type("button")
-                            +"Some button"
-
-                            floater.install(this)
-                        }
-
                         div {
                             id(tooltipId)
-                            attr("role", "tooltip")
                             classList(
                                 listOf(
-                                    "on-floating",
                                     "shadow-xl",
-                                    "absolute z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
+                                    "z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
                                 )
                             )
 
@@ -391,17 +372,22 @@ fun main() {
                                 className("px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700")
                                 h3 {
                                     className("font-semibold text-gray-900 dark:text-white")
-                                    +"Popover Title"
+                                    +"Choose accent color"
                                 }
                             }
                             div {
-                                className("px-3 py-2")
-                                p {
-                                    +"And here's some amazing content. It's very engaging. Right?"
+                                modelStore.data.map { it.proposedAccentColors }.renderEach(into = this) { color ->
+                                    div {
+                                        className("w-64 h-12 p-2")
+                                        bigColorBox(
+                                            color = color.color,
+                                            textColor = color.color.fittingFontColor(
+                                                Color(1.0, 1.0, 1.0),
+                                                Color(0.0, 0.0, 0.0)
+                                            )
+                                        )
+                                    }
                                 }
-                            }
-                            div {
-                                attr("data-popper-arrow", "")
                             }
                         }
                     }

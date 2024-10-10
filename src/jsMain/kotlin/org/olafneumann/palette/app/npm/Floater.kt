@@ -84,6 +84,10 @@ class Floater(
     private fun initialize() {
         floatingElement.style.display = "none"
         floatingElement.setOpacity(show = false)
+        floatingElement.style.width = "max-content"
+        floatingElement.style.position = "absolute"
+        floatingElement.style.top = "0"
+        floatingElement.style.left = "0"
     }
 
     private fun update() {

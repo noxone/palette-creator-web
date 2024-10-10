@@ -14,6 +14,8 @@ import dev.fritz2.core.values
 import dev.fritz2.core.viewBox
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.olafneumann.palette.app.npm.Floater
+import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLLabelElement
@@ -23,7 +25,11 @@ import org.w3c.dom.events.MouseEvent
 fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: String) =
     checkbox(value = value, handler = handler) { +label }
 
-fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: HtmlTag<HTMLLabelElement>.() -> Unit) =
+fun RenderContext.checkbox(
+    value: Flow<Boolean>,
+    handler: Handler<Boolean>? = null,
+    label: HtmlTag<HTMLLabelElement>.() -> Unit,
+) =
     div {
         val id = IdGenerator.next
         className("flex items-start")
@@ -102,6 +108,8 @@ data class Button(
     val value: Flow<String>? = null,
     val mouseHandler: Handler<MouseEvent>? = null,
     val textHandler: Handler<String>? = null,
+    val floatingElementId: String? = null,
+    val floaterOptions: Options? = null,
 )
 
 fun RenderContext.buttonGroup(buttons: List<Button>) =
@@ -109,12 +117,14 @@ fun RenderContext.buttonGroup(buttons: List<Button>) =
         className("inline-flex rounded-md shadow-sm")
 
         for (button in buttons) {
-            val classes = mutableListOf("px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
+            val classes = mutableListOf(
+                "px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
                 "hover:bg-gray-100 hover:text-blue-700",
                 "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
                 "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
                 "dark:hover:text-white dark:hover:bg-gray-700",
-                "dark:focus:ring-blue-500 dark:focus:text-white")
+                "dark:focus:ring-blue-500 dark:focus:text-white"
+            )
             if (button == buttons.first()) {
                 classes.add("rounded-s-lg")
             } else if (button == buttons.last()) {
@@ -137,6 +147,15 @@ private fun RenderContext.buttonGroupButton(classes: List<String>, button: Butto
         button.value?.renderText(into = this)
         button.text?.let { +it }
         button.mouseHandler?.let { clicks handledBy it }
+
+        button.floatingElementId?.let { floatingElementId ->
+            val floater = Floater(
+                referenceElementId = button.id,
+                floatingElementId = floatingElementId,
+                options = button.floaterOptions ?: Options()
+            )
+            floater.install(this)
+        }
     }
 
 private fun RenderContext.buttonGroupColorPicker(classes: MutableList<String>, button: Button) =
