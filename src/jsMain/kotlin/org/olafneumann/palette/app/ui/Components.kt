@@ -2,7 +2,6 @@ package org.olafneumann.palette.app.ui
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
-import dev.fritz2.core.Id
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.checked
 import dev.fritz2.core.d
@@ -15,6 +14,7 @@ import dev.fritz2.core.values
 import dev.fritz2.core.viewBox
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.olafneumann.palette.app.utils.IdGenerator
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLLabelElement
 import org.w3c.dom.events.MouseEvent
@@ -25,7 +25,7 @@ fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = nu
 
 fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: HtmlTag<HTMLLabelElement>.() -> Unit) =
     div {
-        val id = Id.next()
+        val id = IdGenerator.next
         className("flex items-start")
         div {
             className("flex-items-center h-5")
@@ -97,6 +97,7 @@ enum class ButtonType {
 
 data class Button(
     val type: ButtonType = ButtonType.button,
+    val id: String = IdGenerator.next,
     val text: String? = null,
     val value: Flow<String>? = null,
     val mouseHandler: Handler<MouseEvent>? = null,
@@ -131,6 +132,7 @@ fun RenderContext.buttonGroup(buttons: List<Button>) =
 private fun RenderContext.buttonGroupButton(classes: List<String>, button: Button) =
     button {
         type("button")
+        id(button.id)
         classList(classes)
         button.value?.renderText(into = this)
         button.text?.let { +it }
@@ -139,12 +141,11 @@ private fun RenderContext.buttonGroupButton(classes: List<String>, button: Butto
 
 private fun RenderContext.buttonGroupColorPicker(classes: MutableList<String>, button: Button) =
     label {
-        val id = Id.next()
         classes.add("z-20 cursor-pointer")//relative
         classList(classes)
 
         inlineStyle("position:relative;")
-        `for`(id)
+        `for`(button.id)
         div {
             className("flex flex-wrap content-center justify-center h-full")
             button.text?.let { +it }
@@ -156,7 +157,7 @@ private fun RenderContext.buttonGroupColorPicker(classes: MutableList<String>, b
                 type("color")
                 className("cursor-pointer")
                 inlineStyle("opacity:0;")
-                id(id)
+                id(button.id)
                 button.value?.let { value(it) }
                 button.textHandler?.let { changes.values() handledBy it }
             }

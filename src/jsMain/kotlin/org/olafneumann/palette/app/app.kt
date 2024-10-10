@@ -2,7 +2,6 @@ package org.olafneumann.palette.app
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
-import dev.fritz2.core.Id
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Store
@@ -29,11 +28,12 @@ import org.olafneumann.palette.app.ui.buttonGroup
 import org.olafneumann.palette.app.ui.checkbox
 import org.olafneumann.palette.app.ui.colorList
 import org.olafneumann.palette.app.ui.warningToast
+import org.olafneumann.palette.app.utils.IdGenerator
+import org.olafneumann.palette.app.utils.copyToClipboard
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.ColorName
 import org.olafneumann.palette.colors.fittingFontColor
-import org.olafneumann.palette.app.utils.copyToClipboard
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
@@ -242,7 +242,10 @@ fun main() {
                         modelStore.data.render(into = this) {
                             bigColorBox(
                                 color = it.primaryColor,
-                                textColor = it.primaryColor.fittingFontColor(light = it.primaryColorShadeList.lightestColor, dark = it.primaryColorShadeList.darkestColor)
+                                textColor = it.primaryColor.fittingFontColor(
+                                    light = it.primaryColorShadeList.lightestColor,
+                                    dark = it.primaryColorShadeList.darkestColor
+                                )
                             )
                         }
                     }
@@ -342,37 +345,27 @@ fun main() {
                     className("grid grid-cols-12")
                     div {
                         className("col-span-12")
-                        buttonGroup(listOf(
-                            Button(text = "Add fitting accent color", mouseHandler = modelStore.addRandomAccentColor),
-                            Button(text="Pick custom accent color")
-                        ))
+                        buttonGroup(
+                            listOf(
+                                Button(
+                                    text = "Add fitting accent color",
+                                    mouseHandler = modelStore.addRandomAccentColor
+                                ),
+                                Button(text = "Pick custom accent color")
+                            )
+                        )
                     }
 
                     div {
                         // TODO: Replace Id-Generator by own one...
-                        val parentId = "onid_" + Id.next()
-                        val tooltipId = "onid_" + Id.next()
-                        val store: Store<Boolean> = storeOf(true)
+                        val parentId = IdGenerator.next
+                        val tooltipId = IdGenerator.next
 
                         val floater = Floater(
                             referenceElementId = parentId,
                             floatingElementId = tooltipId,
                             options = Options(placement = Placement.bottomStart)
                         )
-                        val store2 = object : RootStore<Boolean>(true, job = Job()) {
-                            val update2: Handler<Boolean> = handle { _, newValue ->
-                                update.invoke(newValue)
-                                if (newValue) {
-                                    console.log("show")
-                                    // TODO: Popper.createPopper(parentId, tooltipId)
-                                    floater.show()
-                                } else {
-                                    console.log("hide")
-                                    floater.hide()
-                                }
-                                newValue
-                            }
-                        }
 
                         button {
                             id(parentId)
@@ -380,18 +373,19 @@ fun main() {
                             type("button")
                             +"Some button"
 
-                            mouseenters.map { true } handledBy store2.update2
-                            mouseleaves.map { false } handledBy store2.update2
-                            blurs.map { false } handledBy store2.update2
+                            floater.install(this)
                         }
 
                         div {
                             id(tooltipId)
                             attr("role", "tooltip")
-                            classList(listOf(
-                                "on-floating",
-                                "absolute z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
-                            ))
+                            classList(
+                                listOf(
+                                    "on-floating",
+                                    "shadow-xl",
+                                    "absolute z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
+                                )
+                            )
 
                             div {
                                 className("px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700")
@@ -407,7 +401,7 @@ fun main() {
                                 }
                             }
                             div {
-                                attr("data-popper-arrow","")
+                                attr("data-popper-arrow", "")
                             }
                         }
                     }
@@ -506,7 +500,7 @@ private fun RenderContext.section(
     title: String,
     instruction: String? = null,
     explanation: String? = null,
-    content: HtmlTag<HTMLDivElement>.() -> Unit
+    content: HtmlTag<HTMLDivElement>.() -> Unit,
 ) =
     boxy {
         div {

@@ -1,8 +1,17 @@
 package org.olafneumann.palette.app.npm
 
+import dev.fritz2.core.Handler
+import dev.fritz2.core.HtmlTag
+import dev.fritz2.core.RenderContext
+import dev.fritz2.core.RootStore
+import dev.fritz2.core.SimpleHandler
+import dev.fritz2.core.Store
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.utils.toJson
+import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 
 data class Options(
@@ -57,9 +66,18 @@ class Floater(
     private val referenceElement: HTMLElement by lazy { document.querySelector("#$referenceElementId") as HTMLElement }
     private val floatingElement: HTMLElement by lazy { document.querySelector("#$floatingElementId") as HTMLElement }
 
+    val store: Store<Boolean>
+
     private var timeoutHandle: Int? = null
 
     init {
+        store = object : RootStore<Boolean>(false, job = Job()) {
+            override val update: SimpleHandler<Boolean> = handle { _, newValue ->
+                showOrHide(show = newValue)
+                newValue
+            }
+        }
+
         runLater { initialize() }
     }
 
@@ -76,13 +94,19 @@ class Floater(
             }
     }
 
+    private fun showOrHide(show: Boolean) {
+        animateShowHide(show = show)
+        if (show) {
+            update()
+        }
+    }
+
     fun show() {
-        animateShowHide(show = true)
-        update()
+        showOrHide(show = true)
     }
 
     fun hide() {
-        animateShowHide(show = false)
+        showOrHide(show = false)
     }
 
     private fun animateShowHide(show: Boolean) {
@@ -110,6 +134,16 @@ class Floater(
             action()
             timeoutHandle = null
         }, timeout)
+    }
+
+    fun install(`in`: HtmlTag<*>) {
+        `in`.install()
+    }
+
+    private fun HtmlTag<*>.install() {
+        mouseenters.map { true } handledBy store.update
+        mouseleaves.map { false } handledBy store.update
+        blurs.map { false } handledBy store.update
     }
 
     companion object {
