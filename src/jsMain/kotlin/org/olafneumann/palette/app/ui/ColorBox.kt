@@ -2,6 +2,7 @@ package org.olafneumann.palette.app.ui
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.RenderContext
+import dev.fritz2.core.id
 import dev.fritz2.core.title
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.colorful.Color
@@ -17,13 +18,12 @@ fun RenderContext.colorList(
     div {
         className("flex flex-row justify-around justify-items-center")
         colors.forEach { color ->
-            val div = smallColorBox(
+            colorBox(
                 width = width,
                 height = height,
                 color = color.color,
-                //text = "${color.color.hex()} - ${color.shade.format(2)}"
+                handler = handler
             )
-            handler?.let { div.clicks.map { color.color } handledBy it }
         }
     }
 
@@ -36,41 +36,63 @@ fun RenderContext.colorList(
     div {
         className("flex flex-row justify-around justify-items-center")
         colors.forEach { color ->
-            smallColorBox(width = width, height = height, color = color)
+            colorBox(width = width, height = height, color = color)
         }
     }
 
-private fun RenderContext.smallColorBox(
-    width: Double,
-    height: Double,
-    color: Color
-) =
-    div {
-        val hex = color.hex()
-
-        className("flex-auto rounded border border-slate-200 shadow-inner mx-1")
-        inlineStyle("background-color: ${hex};width: ${width}rem;height: ${height}rem;")
-        title(hex)
-    }
-
-fun RenderContext.bigColorBox(
+fun RenderContext.colorBox(
+    id: String? = null,
     color: Color,
     textColor: Color? = null,
-    handler: Handler<Color>? = null
+    textToRender: String? = null,
+    width: Double? = null,
+    height: Double? = null,
+    handler: Handler<Color>? = null,
 ) =
     div {
-        className("on-title-font rounded-lg shadow-xl font-thin h-full")
+        val bigBox = width == null && height == null
+        val colorHex = color.hex()
+        val textHex = textColor?.hex()
+
+        val outerClasses = mutableListOf("on-title-font", "font-thin")
+        if (bigBox) {
+            outerClasses.add("rounded-lg")
+            outerClasses.add("shadow-xl")
+            outerClasses.add("h-full")
+        } else {
+            outerClasses.add("flex-auto")
+            outerClasses.add("rounded")
+            outerClasses.add("border")
+            outerClasses.add("border-slate-200")
+            outerClasses.add("shadow-inner")
+            outerClasses.add("mx-1")
+        }
+        classList(outerClasses)
+        inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
         div {
-            className("rounded-lg shadow-inner w-full h-full flex flex-wrap justify-center content-center")
-            inlineStyle("background-color: ${color.hex()};${textColor?.let { "color:${it.hex()};" } ?: ""}")
-            textColor?.let {
+            val innerClasses = mutableListOf("shadow-inner","w-full","h-full","flex","flex-wrap","justify-center","content-center")
+            if (bigBox) {
+                innerClasses.add("rounded-lg")
+            } else {
+                innerClasses.add("rounded")
+            }
+            classList(innerClasses)
+
+            inlineStyle("background-color:$colorHex;${textHex.css("color")};")
+
+            id?.let { id(it) }
+            title(colorHex)
+
+            textHex?.let {
                 p {
-                    +color.hex()
+                    +(textToRender?.replace("{{hex}}", colorHex) ?: colorHex)
                 }
             }
+        }
 
-            handler?.let {
-                clicks.map { color } handledBy it
-            }
+        handler?.let {
+            clicks.map { color } handledBy it
         }
     }
+
+private fun Any?.css(property: String, unit: String? = null) = this?.let { "$property:$it${unit ?: ""};" } ?: ""

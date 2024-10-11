@@ -16,20 +16,20 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
+import org.olafneumann.palette.app.npm.FloaterEventType
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
 import org.olafneumann.palette.app.ui.Button
 import org.olafneumann.palette.app.ui.ButtonType
-import org.olafneumann.palette.app.ui.bigColorBox
 import org.olafneumann.palette.app.ui.buttonGroup
 import org.olafneumann.palette.app.ui.checkbox
+import org.olafneumann.palette.app.ui.colorBox
 import org.olafneumann.palette.app.ui.colorList
 import org.olafneumann.palette.app.ui.warningToast
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.olafneumann.palette.app.utils.copyToClipboard
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
-import org.olafneumann.palette.colors.ColorName
 import org.olafneumann.palette.colors.fittingFontColor
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLDivElement
@@ -237,7 +237,7 @@ fun main() {
                     div {
                         className("col-span-4 w-full h-full")
                         modelStore.data.render(into = this) {
-                            bigColorBox(
+                            colorBox(
                                 color = it.primaryColor,
                                 textColor = it.primaryColor.fittingFontColor(
                                     light = it.primaryColorShadeList.lightestColor,
@@ -301,7 +301,7 @@ fun main() {
                         className("col-span-4 w-full h-full")
 
                         modelStore.data.render(into = this) {
-                            bigColorBox(
+                            colorBox(
                                 color = it.neutralColor,
                                 textColor = it.neutralColorShadeList.lightestColor
                             )
@@ -345,51 +345,58 @@ fun main() {
 
                     div {
                         className("col-span-12")
+
+                        fun RenderContext.createColorPickerFloater(id: String) =
+                            div {
+                                id(id)
+                                div {
+                                    id(tooltipId)
+                                    classList(
+                                        listOf(
+                                            "shadow-xl",
+                                            "z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
+                                        )
+                                    )
+
+                                    div {
+                                        className("px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700")
+                                        h3 {
+                                            className("font-semibold text-gray-900 dark:text-white")
+                                            +"Choose accent color"
+                                        }
+                                    }
+                                    div {
+                                        modelStore.data.map { it.proposedAccentColors }.renderEach(into = this) { color ->
+                                            div {
+                                                className("w-64 h-12 p-2")
+                                                colorBox(
+                                                    color = color.color,
+                                                    textColor = color.color.fittingFontColor(
+                                                        Color(1.0, 1.0, 1.0),
+                                                        Color(0.0, 0.0, 0.0)
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
                         buttonGroup(
                             listOf(
                                 Button(
-                                    text = "Add fitting accent color",
-                                    mouseHandler = modelStore.addRandomAccentColor,
-                                    floatingElementId = tooltipId,
+                                    text = "Choose accent color",
+                                    floaterElement = { id -> createColorPickerFloater(id) },
                                     floaterOptions = Options(placement = Placement.bottomStart),
+                                    floaterEvents = listOf(FloaterEventType.Click)
+                                ),
+                                Button(
+                                    text = "Add random accent color",
+                                    mouseHandler = modelStore.addRandomAccentColor,
                                 ),
                                 Button(text = "Pick custom accent color")
                             )
                         )
-                    }
-
-                    div {
-                        div {
-                            id(tooltipId)
-                            classList(
-                                listOf(
-                                    "shadow-xl",
-                                    "z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
-                                )
-                            )
-
-                            div {
-                                className("px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700")
-                                h3 {
-                                    className("font-semibold text-gray-900 dark:text-white")
-                                    +"Choose accent color"
-                                }
-                            }
-                            div {
-                                modelStore.data.map { it.proposedAccentColors }.renderEach(into = this) { color ->
-                                    div {
-                                        className("w-64 h-12 p-2")
-                                        bigColorBox(
-                                            color = color.color,
-                                            textColor = color.color.fittingFontColor(
-                                                Color(1.0, 1.0, 1.0),
-                                                Color(0.0, 0.0, 0.0)
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
                     }
 
                     div {
@@ -432,15 +439,6 @@ fun main() {
 
             section(
                 number = 4,
-                title = "Special Colors",
-                explanation = """For special cases like danger, warnings or even positive information you might want to use different colors in your UI.
-                        You should also use some icons for this, as e.g. not all countries see "red" as a color for "danger". In China this is the color for luck and wealth."""
-            ) {
-                +"bla"
-            }
-
-            section(
-                number = 5,
                 title = "Options",
             ) {
                 h3 {
@@ -467,7 +465,7 @@ fun main() {
             }
 
             section(
-                number = 6,
+                number = 5,
                 title = "Download",
             ) {
                 button {
@@ -520,6 +518,6 @@ private fun RenderContext.section(
 
 private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
     div {
-        className("mt-5 p-4 bg-slate-50 md:rounded-xl shadow-xl grid grid-cols-12")
+        className("my-4 p-4 bg-slate-50 md:rounded-xl shadow-xl grid grid-cols-12")
         content()
     }

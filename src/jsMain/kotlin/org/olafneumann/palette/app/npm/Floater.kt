@@ -2,7 +2,6 @@ package org.olafneumann.palette.app.npm
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
-import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.SimpleHandler
 import dev.fritz2.core.Store
@@ -11,7 +10,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.utils.toJson
-import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 
 data class Options(
@@ -57,7 +55,6 @@ data class ShiftOptions(
 //    fun toJson() = toMap().toJson()
 //}
 
-
 class Floater(
     private val referenceElementId: String,
     private val floatingElementId: String,
@@ -66,18 +63,12 @@ class Floater(
     private val referenceElement: HTMLElement by lazy { document.querySelector("#$referenceElementId") as HTMLElement }
     private val floatingElement: HTMLElement by lazy { document.querySelector("#$floatingElementId") as HTMLElement }
 
-    val store: Store<Boolean>
+    // val store: Store<Boolean> get() = floaterStore
+    private val floaterStore = FloaterStore()
 
     private var timeoutHandle: Int? = null
 
     init {
-        store = object : RootStore<Boolean>(false, job = Job()) {
-            override val update: SimpleHandler<Boolean> = handle { _, newValue ->
-                showOrHide(show = newValue)
-                newValue
-            }
-        }
-
         runLater { initialize() }
     }
 
@@ -140,17 +131,42 @@ class Floater(
         }, timeout)
     }
 
-    fun install(`in`: HtmlTag<*>) {
-        `in`.install()
+    fun install(`in`: HtmlTag<*>, `for`: FloaterEventType) {
+        if (`for` == FloaterEventType.MouseOver) {
+            `in`.installForMouseOver()
+        } else if (`for` == FloaterEventType.Click) {
+            `in`.installForClick()
+        }
     }
 
-    private fun HtmlTag<*>.install() {
-        mouseenters.map { true } handledBy store.update
-        mouseleaves.map { false } handledBy store.update
-        blurs.map { false } handledBy store.update
+    private fun HtmlTag<*>.installForMouseOver() {
+        mouseenters.map { true } handledBy floaterStore.update
+        mouseleaves.map { false } handledBy floaterStore.update
+        blurs.map { false } handledBy floaterStore.update
+    }
+
+    private fun HtmlTag<*>.installForClick() {
+        clicks.map { true } handledBy floaterStore.toggle
+        focusouts.map { false } handledBy floaterStore.update
     }
 
     companion object {
         private const val TIMEOUT = 300
     }
+
+    private inner class FloaterStore : RootStore<Boolean>(false, job = Job()) {
+        override val update: SimpleHandler<Boolean> = handle { _, newValue ->
+            showOrHide(show = newValue)
+            newValue
+        }
+        val toggle: Handler<Boolean> = handle { current, _ ->
+            showOrHide(show = !current)
+            !current
+        }
+    }
+
+}
+
+enum class FloaterEventType {
+    MouseOver, Click
 }

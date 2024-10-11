@@ -15,6 +15,7 @@ import dev.fritz2.core.viewBox
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.npm.Floater
+import org.olafneumann.palette.app.npm.FloaterEventType
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.w3c.dom.HTMLInputElement
@@ -108,8 +109,10 @@ data class Button(
     val value: Flow<String>? = null,
     val mouseHandler: Handler<MouseEvent>? = null,
     val textHandler: Handler<String>? = null,
-    val floatingElementId: String? = null,
+    val floaterElementId: String? = null,
+    val floaterElement: (RenderContext.(id: String) -> Unit)? = null,
     val floaterOptions: Options? = null,
+    val floaterEvents: List<FloaterEventType> = emptyList(),
 )
 
 fun RenderContext.buttonGroup(buttons: List<Button>) =
@@ -148,13 +151,26 @@ private fun RenderContext.buttonGroupButton(classes: List<String>, button: Butto
         button.text?.let { +it }
         button.mouseHandler?.let { clicks handledBy it }
 
-        button.floatingElementId?.let { floatingElementId ->
+        button.floaterElementId?.let { floatingElementId ->
             val floater = Floater(
                 referenceElementId = button.id,
                 floatingElementId = floatingElementId,
                 options = button.floaterOptions ?: Options()
             )
-            floater.install(this)
+
+            button.floaterEvents.forEach { floater.install(`in` = this, `for` = it) }
+        }
+
+        button.floaterElement?.let {
+            val id = IdGenerator.next
+            it(id)
+            val floater = Floater(
+                referenceElementId = button.id,
+                floatingElementId = id,
+                options = button.floaterOptions ?: Options()
+            )
+
+            button.floaterEvents.forEach { floater.install(`in` = this, `for` = it) }
         }
     }
 
