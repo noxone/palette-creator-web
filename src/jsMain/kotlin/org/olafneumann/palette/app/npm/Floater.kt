@@ -147,7 +147,7 @@ class Floater(
 
     private fun HtmlTag<*>.installForClick() {
         clicks.map { true } handledBy floaterStore.toggle
-        focusouts.map { false } handledBy floaterStore.update
+        blurs.map { false } handledBy floaterStore.update
     }
 
     companion object {

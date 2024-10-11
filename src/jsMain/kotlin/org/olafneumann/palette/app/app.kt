@@ -354,7 +354,7 @@ fun main() {
                                     classList(
                                         listOf(
                                             "shadow-xl",
-                                            "z-10 inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
+                                            "z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
                                         )
                                     )
 
@@ -368,13 +368,14 @@ fun main() {
                                     div {
                                         modelStore.data.map { it.proposedAccentColors }.renderEach(into = this) { color ->
                                             div {
-                                                className("w-64 h-12 p-2")
+                                                className("w-full h-12 p-2")
                                                 colorBox(
                                                     color = color.color,
                                                     textColor = color.color.fittingFontColor(
                                                         Color(1.0, 1.0, 1.0),
                                                         Color(0.0, 0.0, 0.0)
-                                                    )
+                                                    ),
+                                                    textToRender = "${color.name.name}: {{hex}}"
                                                 )
                                             }
                                         }

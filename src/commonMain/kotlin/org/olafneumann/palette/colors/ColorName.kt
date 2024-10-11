@@ -3,13 +3,13 @@ package org.olafneumann.palette.colors
 import org.olafneumann.palette.colorful.Color
 
 enum class ColorName(val from: Double, val to: Double) {
-    red(from = 310.0, to = 20.0),
-    orange(from = 20.0, to = 45.0),
-    yellow(from = 45.0, to = 70.0),
-    green(from = 70.0, to = 155.0),
-    aqua(from = 155.0, to = 185.0),
-    blue(from = 185.0, to = 245.0),
-    purple(from = 245.0, to = 310.0);
+    red(from = 306.0, to = 14.0),
+    orange(from = 14.0, to = 42.0),
+    yellow(from = 42.0, to = 70.0),
+    green(from = 70.0, to = 167.0),
+    aqua(from = 167.0, to = 188.0),
+    blue(from = 188.0, to = 252.0),
+    purple(from = 252.0, to = 306.0);
 
     companion object {
         private fun into360(value: Double): Double {
