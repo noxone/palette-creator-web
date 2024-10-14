@@ -44,11 +44,17 @@ private const val HEADER_ID = "on_header"
 private const val SHADES_MIN = 5
 private const val SHADES_MAX = 15
 
+private val PARAM_PRIMARY = "primary"
+private val PARAM_NEUTRAL = "neutral"
+private val PARAM_ACCENTS = "accents"
+private val PARAM_ACCENT_SEED = "accent_seed"
+
 private fun createInitialModel(): PaletteModel {
     val params = URL(document.URL).searchParams
-    val primaryHex = params.get("primary")
-    val neutralHex = params.get("neutral")
-    val accentHexList = params.get("accents")?.split(',')
+    val primaryHex = params.get(PARAM_PRIMARY)
+    val neutralHex = params.get(PARAM_NEUTRAL)
+    val accentHexList = params.get(PARAM_ACCENTS)?.split(',')
+    val accentSeed = params.get(PARAM_ACCENT_SEED)?.toIntOrNull() ?: PaletteModel.ACCENT_COLOR_SEED_INIT
 
     return PaletteModel(
         shadeCount = 7, // TODO: read from params
@@ -56,7 +62,21 @@ private fun createInitialModel(): PaletteModel {
         enforcePrimaryColorInShades = true, // TODO: read from params
         neutralColor = neutralHex?.let { Color.hex(it) } ?: ColorGenerator.randomNeutral(),
         accentColors = accentHexList?.let { it.mapNotNull { hex -> Color.hex(hex) } } ?: emptyList(),
+        accentColorSeed = accentSeed ?: 0,
     )
+}
+
+private fun PaletteModel.createUrl(): URL {
+    val map = mapOf(
+        PARAM_PRIMARY to this.primaryColor.hex().substring(1),
+        PARAM_NEUTRAL to this.neutralColor.hex().substring(1),
+        PARAM_ACCENTS to this.accentColors.joinToString(",") { it.hex().substring(1) },
+        PARAM_ACCENT_SEED to this.accentColorSeed,
+    )
+    val localhostUrl = map
+        .map { "${it.key}=${it.value}" }
+        .joinToString(prefix = "http://localhost/?", separator = "&")
+    return URL(localhostUrl).toCurrentWindowLocation()
 }
 
 private val URL_CURRENT = URL(window.location.toString())
@@ -84,16 +104,7 @@ fun main() {
         ) {
 
         private val queryStringChanger = handle { model: PaletteModel, _: PaletteModel ->
-            val map = mapOf(
-                "primary" to model.primaryColor.hex().substring(1),
-                "neutral" to model.neutralColor.hex().substring(1),
-                "accents" to model.accentColors.joinToString(",") { it.hex().substring(1) }
-            )
-            val localhostUrl = map
-                .map { "${it.key}=${it.value}" }
-                .joinToString(prefix = "http://localhost/?", separator = "&")
-            val url = URL(localhostUrl).toCurrentWindowLocation()
-            window.history.replaceState(data = null, title = document.title, url = url.search)
+            window.history.replaceState(data = null, title = document.title, url = model.createUrl().search)
             model
         }
 

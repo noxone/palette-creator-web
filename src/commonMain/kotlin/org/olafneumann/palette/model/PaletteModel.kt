@@ -53,7 +53,7 @@ data class PaletteModel(
     // TODO: Add check that accent colors are different enough
 
     companion object {
-        private const val ACCENT_COLOR_SEED_INIT = 1
+        const val ACCENT_COLOR_SEED_INIT = 1
         private const val PRIMARY_MIN_SATURATION = 0.3
         private const val NEUTRAL_MAX_SATURATION = 0.15
 
