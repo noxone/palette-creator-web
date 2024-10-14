@@ -4,11 +4,13 @@ import org.olafneumann.palette.colorful.Color
 import kotlin.math.abs
 
 data class ShadeList(
+    val name: String,
     val baseColor: Color,
     val shadedColors: List<ShadedColor>
 ) {
-    constructor(baseColor: Color, shadeCount: Int, min: Double = 0.1, max: Double = 0.9, enforceColorInShades: Boolean)
+    constructor(name: String, baseColor: Color, shadeCount: Int, min: Double = 0.1, max: Double = 0.9, enforceColorInShades: Boolean)
             : this(
+        name = name,
         baseColor = baseColor,
         shadedColors = createShades(
             forColor = baseColor,

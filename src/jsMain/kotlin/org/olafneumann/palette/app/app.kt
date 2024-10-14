@@ -39,15 +39,19 @@ import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
 import kotlin.math.min
 
+private const val DEFAULT_SHADE_COUNT = 7
+private const val DEFAULT_ENFORCE_PRIMARY_COLOR = true
 private const val COLOR_COUNT_DIV = 48
 private const val HEADER_ID = "on_header"
 private const val SHADES_MIN = 5
 private const val SHADES_MAX = 15
 
-private val PARAM_PRIMARY = "primary"
-private val PARAM_NEUTRAL = "neutral"
-private val PARAM_ACCENTS = "accents"
-private val PARAM_ACCENT_SEED = "accent_seed"
+private const val PARAM_PRIMARY = "primary"
+private const val PARAM_NEUTRAL = "neutral"
+private const val PARAM_ACCENTS = "accents"
+private const val PARAM_ACCENT_SEED = "accent_seed"
+private const val PARAM_ENFORCE_COLOR_IN_SHADE = "enforce_color"
+private const val PARAM_SHADE_COUNT = "count"
 
 private fun createInitialModel(): PaletteModel {
     val params = URL(document.URL).searchParams
@@ -55,11 +59,13 @@ private fun createInitialModel(): PaletteModel {
     val neutralHex = params.get(PARAM_NEUTRAL)
     val accentHexList = params.get(PARAM_ACCENTS)?.split(',')
     val accentSeed = params.get(PARAM_ACCENT_SEED)?.toIntOrNull() ?: PaletteModel.ACCENT_COLOR_SEED_INIT
+    val enforcePrimaryColorInShades = params.get(PARAM_ENFORCE_COLOR_IN_SHADE)?.toBoolean() ?: DEFAULT_ENFORCE_PRIMARY_COLOR
+    val shadeCount = params.get(PARAM_SHADE_COUNT)?.toIntOrNull() ?: DEFAULT_SHADE_COUNT
 
     return PaletteModel(
-        shadeCount = 7, // TODO: read from params
+        shadeCount = shadeCount,
         primaryColor = primaryHex?.let { Color.hex(it) } ?: ColorGenerator.randomPrimary(),
-        enforcePrimaryColorInShades = true, // TODO: read from params
+        enforcePrimaryColorInShades = enforcePrimaryColorInShades,
         neutralColor = neutralHex?.let { Color.hex(it) } ?: ColorGenerator.randomNeutral(),
         accentColors = accentHexList?.let { it.mapNotNull { hex -> Color.hex(hex) } } ?: emptyList(),
         accentColorSeed = accentSeed ?: 0,

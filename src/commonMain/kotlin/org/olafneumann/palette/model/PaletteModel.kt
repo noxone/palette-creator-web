@@ -19,9 +19,9 @@ data class PaletteModel(
     // TODO: Improve way to generate accent colors!
     private val proposedAccentColor: Color get() = (accentColors.lastOrNull() ?: primaryColor).rotate(GOLDEN_ANGLE * accentColorSeed)
 
-    val primaryColorShadeList = ShadeList(baseColor = primaryColor, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades)
-    val neutralColorShadeList = ShadeList(baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, enforceColorInShades = false)
-    val accentColorsShadeLists = accentColors.map { ShadeList(it, shadeCount, enforceColorInShades = enforcePrimaryColorInShades) }
+    val primaryColorShadeList = ShadeList(name = "primary", baseColor = primaryColor, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades)
+    val neutralColorShadeList = ShadeList(name = "neutral", baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, enforceColorInShades = false)
+    val accentColorsShadeLists = accentColors.map { ShadeList("accent", it, shadeCount, enforceColorInShades = enforcePrimaryColorInShades) }
 
     val isPrimaryColorSaturationHighEnough = primaryColor.hsluv().s >= PRIMARY_MIN_SATURATION
     val isNeutralColorSaturationLowEnough = neutralColor.hsluv().s < NEUTRAL_MAX_SATURATION
