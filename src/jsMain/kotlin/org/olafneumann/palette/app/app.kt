@@ -138,6 +138,9 @@ fun main() {
         val randomizeNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.copy(neutralColor = ColorGenerator.randomNeutral())
         }
+        val addAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
+            model.addAccentColor(color)
+        }
         val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.addRandomAccentColor()
         }
@@ -351,31 +354,20 @@ fun main() {
                                 id(id)
                                 div {
                                     id(tooltipId)
-                                    classList(
-                                        listOf(
-                                            "shadow-xl",
-                                            "z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800",
-                                        )
-                                    )
+                                    className("shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800")
 
-                                    div {
-                                        className("px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700")
-                                        h3 {
-                                            className("font-semibold text-gray-900 dark:text-white")
-                                            +"Choose accent color"
-                                        }
-                                    }
                                     div {
                                         modelStore.data.map { it.proposedAccentColors }.renderEach(into = this) { color ->
                                             div {
-                                                className("w-full h-12 p-2")
+                                                className("w-full h-12 p-1")
                                                 colorBox(
                                                     color = color.color,
                                                     textColor = color.color.fittingFontColor(
                                                         Color(1.0, 1.0, 1.0),
                                                         Color(0.0, 0.0, 0.0)
                                                     ),
-                                                    textToRender = "${color.name.name}: {{hex}}"
+                                                    textToRender = "${color.name.name}: {{hex}}",
+                                                    handler = modelStore.addAccentColor,
                                                 )
                                             }
                                         }
@@ -386,10 +378,11 @@ fun main() {
                         buttonGroup(
                             listOf(
                                 Button(
-                                    text = "Choose accent color",
+                                    text = "Derived from primary color",
                                     floaterElement = { id -> createColorPickerFloater(id) },
                                     floaterOptions = Options(placement = Placement.bottomStart),
-                                    floaterEvents = listOf(FloaterEventType.Click)
+                                    floaterEvents = listOf(FloaterEventType.Click),
+                                    floaterBlurOnOutsideClick = true,
                                 ),
                                 Button(
                                     text = "Add random accent color",

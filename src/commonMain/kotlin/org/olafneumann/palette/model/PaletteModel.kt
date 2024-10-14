@@ -26,7 +26,9 @@ data class PaletteModel(
     val isPrimaryColorSaturationHighEnough = primaryColor.hsluv().s >= PRIMARY_MIN_SATURATION
     val isNeutralColorSaturationLowEnough = neutralColor.hsluv().s < NEUTRAL_MAX_SATURATION
 
-    val proposedAccentColors = ColorName.entries.map { primaryColor.rotateUntil(it) }
+    val proposedAccentColors = ColorName.entries
+        .map { primaryColor.rotateUntil(it) }
+        .filter { pac -> !accentColors.contains(pac.color) }
 
     private fun Color.rotateUntil(colorName: ColorName): ProposedColor {
         var color = rotate(GOLDEN_ANGLE)
@@ -44,6 +46,8 @@ data class PaletteModel(
         )
     fun addRandomAccentColor(): PaletteModel =
         copy(accentColors = accentColors + proposedAccentColor, accentColorSeed = accentColorSeed + 1)
+    fun addAccentColor(accentColor: Color): PaletteModel =
+        copy(accentColors = accentColors + accentColor)
 
     // TODO: Add check that neutral color is really neutral
     // TODO: Add check that accent colors are different enough

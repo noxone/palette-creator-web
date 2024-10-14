@@ -113,6 +113,7 @@ data class Button(
     val floaterElement: (RenderContext.(id: String) -> Unit)? = null,
     val floaterOptions: Options? = null,
     val floaterEvents: List<FloaterEventType> = emptyList(),
+    val floaterBlurOnOutsideClick: Boolean = true,
 )
 
 fun RenderContext.buttonGroup(buttons: List<Button>) =
@@ -151,6 +152,12 @@ private fun RenderContext.buttonGroupButton(classes: List<String>, button: Butto
         button.text?.let { +it }
         button.mouseHandler?.let { clicks handledBy it }
 
+        var backgroundElementId: String? = null
+        if (button.floaterBlurOnOutsideClick && (button.floaterElement != null || button.floaterElementId != null)) {
+            backgroundElementId = IdGenerator.next
+            div("on-background-overlay") { id(backgroundElementId) }
+        }
+
         button.floaterElementId?.let { floatingElementId ->
             val floater = Floater(
                 referenceElementId = button.id,
@@ -167,6 +174,7 @@ private fun RenderContext.buttonGroupButton(classes: List<String>, button: Butto
             val floater = Floater(
                 referenceElementId = button.id,
                 floatingElementId = id,
+                backgroundElementId = backgroundElementId,
                 options = button.floaterOptions ?: Options()
             )
 

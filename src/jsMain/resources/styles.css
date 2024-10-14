@@ -26,3 +26,14 @@ body {
 .on-background-color {
     background-color: #000;
 }
+
+.on-background-overlay {
+    /*background-color:rgba(10,10,10,0.1);*/
+    background-color:transparent;
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    display:none;
+}

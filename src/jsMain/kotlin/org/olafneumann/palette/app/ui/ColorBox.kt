@@ -54,7 +54,7 @@ fun RenderContext.colorBox(
         val colorHex = color.hex()
         val textHex = textColor?.hex()
 
-        val outerClasses = mutableListOf("on-title-font", "font-thin")
+        val outerClasses = mutableListOf("on-title-font", "font-thin", "transition-all")
         if (bigBox) {
             outerClasses.add("rounded-lg")
             outerClasses.add("shadow-xl")
@@ -66,6 +66,9 @@ fun RenderContext.colorBox(
             outerClasses.add("border-slate-200")
             outerClasses.add("shadow-inner")
             outerClasses.add("mx-1")
+        }
+        if (handler != null) {
+            outerClasses.add("hover:scale-105")
         }
         classList(outerClasses)
         inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
