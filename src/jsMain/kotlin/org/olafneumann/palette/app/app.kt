@@ -5,6 +5,8 @@ import dev.fritz2.core.HtmlTag
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
+import dev.fritz2.core.d
+import dev.fritz2.core.fill
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.max
@@ -12,6 +14,7 @@ import dev.fritz2.core.min
 import dev.fritz2.core.render
 import dev.fritz2.core.type
 import dev.fritz2.core.value
+import dev.fritz2.core.viewBox
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
@@ -28,6 +31,7 @@ import org.olafneumann.palette.app.ui.colorList
 import org.olafneumann.palette.app.ui.warningToast
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.olafneumann.palette.app.utils.copyToClipboard
+import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.fittingFontColor
@@ -37,53 +41,13 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
+import org.w3c.dom.url.URLSearchParams
 import kotlin.math.min
 
-private const val DEFAULT_SHADE_COUNT = 7
-private const val DEFAULT_ENFORCE_PRIMARY_COLOR = true
 private const val COLOR_COUNT_DIV = 48
 private const val HEADER_ID = "on_header"
 private const val SHADES_MIN = 5
 private const val SHADES_MAX = 15
-
-private const val PARAM_PRIMARY = "primary"
-private const val PARAM_NEUTRAL = "neutral"
-private const val PARAM_ACCENTS = "accents"
-private const val PARAM_ACCENT_SEED = "accent_seed"
-private const val PARAM_ENFORCE_COLOR_IN_SHADE = "enforce_color"
-private const val PARAM_SHADE_COUNT = "count"
-
-private fun createInitialModel(): PaletteModel {
-    val params = URL(document.URL).searchParams
-    val primaryHex = params.get(PARAM_PRIMARY)
-    val neutralHex = params.get(PARAM_NEUTRAL)
-    val accentHexList = params.get(PARAM_ACCENTS)?.split(',')
-    val accentSeed = params.get(PARAM_ACCENT_SEED)?.toIntOrNull() ?: PaletteModel.ACCENT_COLOR_SEED_INIT
-    val enforcePrimaryColorInShades = params.get(PARAM_ENFORCE_COLOR_IN_SHADE)?.toBoolean() ?: DEFAULT_ENFORCE_PRIMARY_COLOR
-    val shadeCount = params.get(PARAM_SHADE_COUNT)?.toIntOrNull() ?: DEFAULT_SHADE_COUNT
-
-    return PaletteModel(
-        shadeCount = shadeCount,
-        primaryColor = primaryHex?.let { Color.hex(it) } ?: ColorGenerator.randomPrimary(),
-        enforcePrimaryColorInShades = enforcePrimaryColorInShades,
-        neutralColor = neutralHex?.let { Color.hex(it) } ?: ColorGenerator.randomNeutral(),
-        accentColors = accentHexList?.let { it.mapNotNull { hex -> Color.hex(hex) } } ?: emptyList(),
-        accentColorSeed = accentSeed ?: 0,
-    )
-}
-
-private fun PaletteModel.createUrl(): URL {
-    val map = mapOf(
-        PARAM_PRIMARY to this.primaryColor.hex().substring(1),
-        PARAM_NEUTRAL to this.neutralColor.hex().substring(1),
-        PARAM_ACCENTS to this.accentColors.joinToString(",") { it.hex().substring(1) },
-        PARAM_ACCENT_SEED to this.accentColorSeed,
-    )
-    val localhostUrl = map
-        .map { "${it.key}=${it.value}" }
-        .joinToString(prefix = "http://localhost/?", separator = "&")
-    return URL(localhostUrl).toCurrentWindowLocation()
-}
 
 private val URL_CURRENT = URL(window.location.toString())
 private fun URL.toCurrentWindowLocation(): URL {
@@ -105,12 +69,16 @@ fun main() {
     }
     val modelStore = object :
         RootStore<PaletteModel>(
-            initialData = createInitialModel(),
+            initialData = PaletteModel.parse(URL(document.URL).searchParams.toMap()),
             job = Job()
         ) {
 
         private val queryStringChanger = handle { model: PaletteModel, _: PaletteModel ->
-            window.history.replaceState(data = null, title = document.title, url = model.createUrl().search)
+            window.history.replaceState(
+                data = null,
+                title = document.title,
+                url = URL(model.createUrl()).toCurrentWindowLocation().search
+            )
             model
         }
 
@@ -119,7 +87,7 @@ fun main() {
         }
 
         private fun checkAccentColorReset(model: PaletteModel): Boolean {
-            val hasAccentColorsDefined = model.accentColors.isNotEmpty()
+            val hasAccentColorsDefined = model.namedAccentColors.isNotEmpty()
             var resetAccentColors = false
             if (hasAccentColorsDefined) {
                 if (window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")) {
@@ -162,7 +130,7 @@ fun main() {
             model.addRandomAccentColor()
         }
         val removeAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
-            model.copy(accentColors = model.accentColors - color)
+            model.removeAccentColor(color)
         }
         val updateShadeCount: Handler<Int> =
             handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
@@ -353,7 +321,7 @@ fun main() {
 
             section(
                 number = 3,
-                title = "Accent Color",
+                title = "Accent Colors",
                 instruction = "If you need need to highlight something, select an accent color.",
                 explanation = """In order to highlight something you probably don't want to use your primary color. So add one or more accent colors.
                     |Be aware that too many color will also not do the trick ;)""".trimMargin(),
@@ -374,20 +342,21 @@ fun main() {
                                     className("shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800")
 
                                     div {
-                                        modelStore.data.map { it.proposedAccentColors }.renderEach(into = this) { color ->
-                                            div {
-                                                className("w-full h-12 p-1")
-                                                colorBox(
-                                                    color = color.color,
-                                                    textColor = color.color.fittingFontColor(
-                                                        Color(1.0, 1.0, 1.0),
-                                                        Color(0.0, 0.0, 0.0)
-                                                    ),
-                                                    textToRender = "${color.name.name}: {{hex}}",
-                                                    handler = modelStore.addAccentColor,
-                                                )
+                                        modelStore.data.map { it.proposedAccentColors }
+                                            .renderEach(into = this) { color ->
+                                                div {
+                                                    className("w-full h-12 p-1")
+                                                    colorBox(
+                                                        color = color.color,
+                                                        textColor = color.color.fittingFontColor(
+                                                            Color(1.0, 1.0, 1.0),
+                                                            Color(0.0, 0.0, 0.0)
+                                                        ),
+                                                        textToRender = "${color.name.name}: {{hex}}",
+                                                        handler = modelStore.addAccentColor,
+                                                    )
+                                                }
                                             }
-                                        }
                                     }
                                 }
                             }
@@ -419,31 +388,45 @@ fun main() {
                         p {
                             +"The accent shades would look like this:"
                         }
-                        modelStore.data.map { it.accentColorsShadeLists }.renderEach(idProvider = {
-                            "${
-                                it.baseColor.hex().substring(1)
-                            }-${it.shadedColors.count()}"
-                        }) { shadeList ->
-                            div {
-                                className("flex flex-row")
+                        modelStore.data.map { it.accentColorsShadeLists }
+                            .renderEach(idProvider = {
+                                "accent_color_${it.name}"
+                            }) { shadeList ->
                                 div {
-                                    className("border rounded-lg p-2 mt-2 shadow-inner")
-                                    inlineStyle("max-width:46rem;")
+                                    className("flex flex-row")
+                                    span {
+                                        +shadeList.name!!
+                                    }
+                                    div {
+                                        className("border rounded-lg p-2 mt-2 shadow-inner")
+                                        inlineStyle("max-width:46rem;")
 
-                                    colorList(
-                                        width = 2.5,
-                                        height = 2.5,
-                                        shadeList.shadedColors,
-                                        handler = modelStore.copyColorToClipboard
-                                    )
-                                }
-                                button {
-                                    type("button")
-                                    +"D"
-                                    clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor
+                                        colorList(
+                                            width = 2.5,
+                                            height = 2.5,
+                                            shadeList.shadedColors,
+                                            handler = modelStore.copyColorToClipboard
+                                        )
+                                    }
+                                    button {
+                                        type("button")
+
+                                        svg {
+                                            className("h-5 w-5")
+                                            xmlns("http://www.w3.org/2000/svg")
+                                            viewBox("0 0 16 16")
+                                            fill("currentColor")
+                                            path {
+                                                d("M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z")
+                                            }
+                                            path {
+                                                d("M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z")
+                                            }
+                                        }
+                                        clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor
+                                    }
                                 }
                             }
-                        }
                     }
                 }
             }
