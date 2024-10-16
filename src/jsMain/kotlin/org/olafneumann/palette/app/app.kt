@@ -20,8 +20,10 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.npm.FloaterEventType
+import org.olafneumann.palette.app.npm.JSZip
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
+import org.olafneumann.palette.app.npm.saveAs
 import org.olafneumann.palette.app.ui.Button
 import org.olafneumann.palette.app.ui.ButtonType
 import org.olafneumann.palette.app.ui.buttonGroup
@@ -36,6 +38,7 @@ import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.fittingFontColor
 import org.olafneumann.palette.model.PaletteModel
+import org.olafneumann.palette.model.generateCss
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
@@ -136,6 +139,13 @@ fun main() {
             handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
 
         val downloadStuff: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            val css = model.generateCss()
+            val zip = JSZip()
+            zip.file("shades.css", css)
+            zip.generateAsync(js("{type:'blob'}")).then {
+                saveAs(it, "test.zip")
+            }
+
             // TODO: implement stuff
             model
         }

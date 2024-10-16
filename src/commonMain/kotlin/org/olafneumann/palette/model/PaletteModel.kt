@@ -29,8 +29,8 @@ data class PaletteModel(
 
     val namedAccentColors = List(accentColors.size) { NamedColor(accentColors[it], accentNames[it]) }
 
-    val primaryColorShadeList = ShadeList(baseColor = primaryColor, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades)
-    val neutralColorShadeList = ShadeList(baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, enforceColorInShades = false)
+    val primaryColorShadeList = ShadeList(name = "primary", baseColor = primaryColor, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades)
+    val neutralColorShadeList = ShadeList(name = "neutral", baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, enforceColorInShades = false)
     val accentColorsShadeLists = namedAccentColors.map { ShadeList(name = it.name, baseColor = it.color, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades) }
 
     val isPrimaryColorSaturationHighEnough = primaryColor.hsluv().s >= PRIMARY_MIN_SATURATION
@@ -133,6 +133,8 @@ data class PaletteModel(
             PARAM_ACCENTS to this.accentColors.joinToString(",") { it.hex().substring(1) },
             PARAM_ACCENT_NAMES to this.accentNames.joinToString(","),
             PARAM_ACCENT_SEED to this.accentColorSeed,
+            PARAM_SHADE_COUNT to this.shadeCount,
+            PARAM_ENFORCE_COLOR_IN_SHADE to this.enforcePrimaryColorInShades,
         )
         return map
             .map { "${it.key}=${it.value}" }
