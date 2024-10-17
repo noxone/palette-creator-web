@@ -1,4 +1,4 @@
-package org.olafneumann.palette.app.ui
+package org.olafneumann.palette.app.ui.components
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.RenderContext

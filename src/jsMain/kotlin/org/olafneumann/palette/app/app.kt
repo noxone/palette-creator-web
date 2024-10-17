@@ -1,12 +1,9 @@
 package org.olafneumann.palette.app
 
 import dev.fritz2.core.Handler
-import dev.fritz2.core.HtmlTag
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
-import dev.fritz2.core.d
-import dev.fritz2.core.fill
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.max
@@ -14,7 +11,6 @@ import dev.fritz2.core.min
 import dev.fritz2.core.render
 import dev.fritz2.core.type
 import dev.fritz2.core.value
-import dev.fritz2.core.viewBox
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
@@ -24,27 +20,28 @@ import org.olafneumann.palette.app.npm.JSZip
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
 import org.olafneumann.palette.app.npm.saveAs
-import org.olafneumann.palette.app.ui.Button
-import org.olafneumann.palette.app.ui.ButtonType
-import org.olafneumann.palette.app.ui.buttonGroup
-import org.olafneumann.palette.app.ui.checkbox
-import org.olafneumann.palette.app.ui.colorBox
-import org.olafneumann.palette.app.ui.colorList
-import org.olafneumann.palette.app.ui.warningToast
+import org.olafneumann.palette.app.ui.components.Button
+import org.olafneumann.palette.app.ui.components.ButtonType
+import org.olafneumann.palette.app.ui.components.buttonGroup
+import org.olafneumann.palette.app.ui.components.checkbox
+import org.olafneumann.palette.app.ui.components.colorBox
+import org.olafneumann.palette.app.ui.components.colorList
+import org.olafneumann.palette.app.ui.components.iconTrash
+import org.olafneumann.palette.app.ui.components.section
+import org.olafneumann.palette.app.ui.components.warningToast
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.olafneumann.palette.app.utils.copyToClipboard
+import org.olafneumann.palette.app.utils.toCurrentWindowLocation
 import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.fittingFontColor
 import org.olafneumann.palette.model.PaletteModel
 import org.olafneumann.palette.model.generateCss
-import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
-import org.w3c.dom.url.URLSearchParams
 import kotlin.math.min
 
 private const val COLOR_COUNT_DIV = 48
@@ -52,14 +49,8 @@ private const val HEADER_ID = "on_header"
 private const val SHADES_MIN = 5
 private const val SHADES_MAX = 15
 
-private val URL_CURRENT = URL(window.location.toString())
-private fun URL.toCurrentWindowLocation(): URL {
-    val url = URL(this.toString())
-    url.protocol = URL_CURRENT.protocol
-    url.hostname = URL_CURRENT.hostname
-    url.port = URL_CURRENT.port
-    return url
-}
+fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
+    parse(URL(document.URL).searchParams.toMap())
 
 fun main() {
 
@@ -72,7 +63,7 @@ fun main() {
     }
     val modelStore = object :
         RootStore<PaletteModel>(
-            initialData = PaletteModel.parse(URL(document.URL).searchParams.toMap()),
+            initialData = PaletteModel.fromCurrentLocation(),
             job = Job()
         ) {
 
@@ -211,7 +202,7 @@ fun main() {
                         buttonGroup(
                             listOf(
                                 Button(
-                                    type = ButtonType.colorPicker,
+                                    type = ButtonType.ColorPicker,
                                     text = "Color Picker",
                                     value = modelStore.data.map { it.primaryColor.hex() },
                                     textHandler = modelStore.setPrimaryColor
@@ -421,18 +412,7 @@ fun main() {
                                     button {
                                         type("button")
 
-                                        svg {
-                                            className("h-5 w-5")
-                                            xmlns("http://www.w3.org/2000/svg")
-                                            viewBox("0 0 16 16")
-                                            fill("currentColor")
-                                            path {
-                                                d("M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z")
-                                            }
-                                            path {
-                                                d("M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z")
-                                            }
-                                        }
+                                        iconTrash()
                                         clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor
                                     }
                                 }
@@ -482,46 +462,3 @@ fun main() {
     }
 }
 
-
-private fun RenderContext.section(
-    number: Int,
-    title: String,
-    instruction: String? = null,
-    explanation: String? = null,
-    content: HtmlTag<HTMLDivElement>.() -> Unit,
-) =
-    boxy {
-        div {
-            className("hidden lg:block")
-            div {
-                className("on-title-font text-7xl antialiased text-slate-500 w-full text-center lining-nums mt-5")
-                +number.toString()
-            }
-        }
-        div {
-            className("col-span-12 lg:col-span-11")
-            div {
-                className("mb-3")
-                h2 {
-                    className("on-title-font font-semibold text-3xl antialiased")
-                    +title
-                }
-                instruction?.let { p { +it } }
-            }
-
-            div {
-                className("text-sm text-slate-500 mb-2")
-                explanation?.split("\n")?.forEach {
-                    p { +it }
-                }
-            }
-
-            content()
-        }
-    }
-
-private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
-    div {
-        className("my-4 p-4 bg-slate-50 md:rounded-xl shadow-xl grid grid-cols-12")
-        content()
-    }
