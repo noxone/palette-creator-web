@@ -25,13 +25,33 @@ data class PaletteModel(
     }
 
     // TODO: Improve way to generate accent colors!
-    private val proposedAccentColor: Color get() = (accentColors.lastOrNull() ?: primaryColor).rotate(GOLDEN_ANGLE * accentColorSeed)
+    private val proposedAccentColor: Color
+        get() = (accentColors.lastOrNull() ?: primaryColor).rotate(GOLDEN_ANGLE * accentColorSeed)
 
     val namedAccentColors = List(accentColors.size) { NamedColor(accentColors[it], accentNames[it]) }
 
-    val primaryColorShadeList = ShadeList(name = "primary", baseColor = primaryColor, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades)
-    val neutralColorShadeList = ShadeList(name = "neutral", baseColor = neutralColor, shadeCount = shadeCount, min = 0.05, max = 0.95, enforceColorInShades = false)
-    val accentColorsShadeLists = namedAccentColors.map { ShadeList(name = it.name, baseColor = it.color, shadeCount = shadeCount, enforceColorInShades = enforcePrimaryColorInShades) }
+    val primaryColorShadeList = ShadeList(
+        name = "primary",
+        baseColor = primaryColor,
+        shadeCount = shadeCount,
+        enforceColorInShades = enforcePrimaryColorInShades
+    )
+    val neutralColorShadeList = ShadeList(
+        name = "neutral",
+        baseColor = neutralColor,
+        shadeCount = shadeCount,
+        min = 0.05,
+        max = 0.95,
+        enforceColorInShades = false
+    )
+    val accentColorsShadeLists = namedAccentColors.map {
+        ShadeList(
+            name = it.name,
+            baseColor = it.color,
+            shadeCount = shadeCount,
+            enforceColorInShades = enforcePrimaryColorInShades
+        )
+    }
 
     val isPrimaryColorSaturationHighEnough = primaryColor.hsluv().s >= PRIMARY_MIN_SATURATION
     val isNeutralColorSaturationLowEnough = neutralColor.hsluv().s < NEUTRAL_MAX_SATURATION
@@ -53,7 +73,7 @@ data class PaletteModel(
         while (color.colorName() != colorName) {
             color = color.rotate(GOLDEN_ANGLE)
         }
-        return ProposedColor(color = color, name = colorName)
+        return ProposedColor(color = color, colorName = colorName)
     }
 
     fun setPrimaryColor(primaryColor: Color, resetAccentColors: Boolean) =
@@ -62,14 +82,17 @@ data class PaletteModel(
             accentColors = if (resetAccentColors) emptyList() else accentColors,
             accentColorSeed = if (resetAccentColors) 1 else accentColorSeed,
         )
+
     fun addRandomAccentColor(): PaletteModel =
         addAccentColor(accentColor = proposedAccentColor, increaseAccentColorSeed = true)
+
     fun addAccentColor(accentColor: Color, increaseAccentColorSeed: Boolean = false): PaletteModel =
         copy(
             accentColors = accentColors + accentColor,
             accentNames = accentNames + proposedAccentColorName,
             accentColorSeed = if (increaseAccentColorSeed) accentColorSeed + 1 else accentColorSeed
         )
+
     fun removeAccentColor(color: Color) =
         copy(accentColors = accentColors - color, accentNames = accentNames - accentNames[accentColors.indexOf(color)])
 
@@ -80,13 +103,15 @@ data class PaletteModel(
         const val ACCENT_COLOR_SEED_INIT = 1
         private const val PRIMARY_MIN_SATURATION = 0.3
         private const val NEUTRAL_MAX_SATURATION = 0.15
-        const val DEFAULT_SHADE_COUNT = 7
-        const val DEFAULT_ENFORCE_PRIMARY_COLOR = true
+        private const val DEFAULT_SHADE_COUNT = 7
+        private const val DEFAULT_ENFORCE_PRIMARY_COLOR = true
 
         data class ProposedColor(
             val color: Color,
-            val name: ColorName,
-        )
+            val colorName: ColorName,
+        ) {
+            val name = colorName.name
+        }
 
         data class NamedColor(
             val color: Color,
@@ -107,7 +132,8 @@ data class PaletteModel(
             val accentHexList = params[PARAM_ACCENTS]?.split(',') ?: emptyList()
             var accentNames = params[PARAM_ACCENT_NAMES]?.split(',') ?: emptyList()
             val accentSeed = params[PARAM_ACCENT_SEED]?.toIntOrNull() ?: ACCENT_COLOR_SEED_INIT
-            val enforcePrimaryColorInShades = params[PARAM_ENFORCE_COLOR_IN_SHADE]?.toBoolean() ?: DEFAULT_ENFORCE_PRIMARY_COLOR
+            val enforcePrimaryColorInShades =
+                params[PARAM_ENFORCE_COLOR_IN_SHADE]?.toBoolean() ?: DEFAULT_ENFORCE_PRIMARY_COLOR
             val shadeCount = params[PARAM_SHADE_COUNT]?.toIntOrNull() ?: DEFAULT_SHADE_COUNT
 
             if (accentHexList.size != accentNames.size) {

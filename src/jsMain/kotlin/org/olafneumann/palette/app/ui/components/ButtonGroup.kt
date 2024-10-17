@@ -1,6 +1,7 @@
 package org.olafneumann.palette.app.ui.components
 
 import dev.fritz2.core.Handler
+import dev.fritz2.core.HtmlTag
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
@@ -8,11 +9,11 @@ import dev.fritz2.core.type
 import dev.fritz2.core.value
 import dev.fritz2.core.values
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.npm.Floater
 import org.olafneumann.palette.app.npm.FloaterEventType
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.utils.IdGenerator
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.MouseEvent
 
 private val defaultButtonClasses = listOf(
@@ -40,7 +41,7 @@ data class Button(
     val clickHandler: Handler<MouseEvent>? = null,
     val textHandler: Handler<String>? = null,
     val floaterElementId: String? = null,
-    val floaterElement: (RenderContext.(String) -> Unit)? = null,
+    val floaterElement: (HtmlTag<HTMLDivElement>.() -> Unit)? = null,
     val floaterOptions: Options? = null,
     val floaterEvents: List<FloaterEventType> = emptyList(),
     val floaterBlurOnOutsideClick: Boolean = true,
@@ -83,13 +84,15 @@ private fun RenderContext.button(button: Button, classes: List<String>) =
 
         button.floaterElement?.let {
             val id = IdGenerator.next
-            it(id)
             val floater = Floater(
                 referenceElementId = button.id,
                 floatingElementId = id,
                 backgroundElementId = backgroundElementId,
                 options = button.floaterOptions ?: Options()
             )
+            createFloater(id = id) {
+                it(this@createFloater)
+            }
 
             button.floaterEvents.forEach { floater.install(`in` = this, `for` = it) }
         }
@@ -120,7 +123,21 @@ private fun RenderContext.colorPicker(button: Button, classes: List<String>) =
         }
     }
 
-fun RenderContext.buttonGroup(buttons: List<Button>) =
+
+private fun RenderContext.createFloater(id: String, content: (HtmlTag<HTMLDivElement>.() -> Unit)) =
+    div {
+        id(id)
+        div {
+            className("shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800")
+
+            content(this)
+        }
+    }
+
+fun RenderContext.buttonGroup(vararg buttons: Button) =
+    buttonGroup(buttons = buttons.asList())
+
+fun RenderContext.buttonGroup(buttons: Collection<Button>) =
     div {
         className("inline-flex rounded-md shadow-sm")
 
