@@ -14,6 +14,18 @@ import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.w3c.dom.events.MouseEvent
 
+private val defaultButtonClasses = listOf(
+    "px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
+    "hover:bg-gray-100 hover:text-blue-700",
+    "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
+    "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
+    "dark:hover:text-white dark:hover:bg-gray-700",
+    "dark:focus:ring-blue-500 dark:focus:text-white"
+)
+private val rounded = listOf("rounded-lg")
+private val roundedStart = listOf("rounded-s-lg")
+private val roundedEnd = listOf("rounded-e-lg")
+
 enum class ButtonType {
     Button, ColorPicker
 }
@@ -21,9 +33,10 @@ enum class ButtonType {
 data class Button(
     val type: ButtonType = ButtonType.Button,
     val id: String = IdGenerator.next,
+    val icon: (RenderContext.() -> Unit)? = null,
     val text: String? = null,
     val value: Flow<String>? = null,
-    val mouseHandler: Handler<MouseEvent>? = null,
+    val clickHandler: Handler<MouseEvent>? = null,
     val textHandler: Handler<String>? = null,
     val floaterElementId: String? = null,
     val floaterElement: (RenderContext.(id: String) -> Unit)? = null,
@@ -32,41 +45,22 @@ data class Button(
     val floaterBlurOnOutsideClick: Boolean = true,
 )
 
-fun RenderContext.buttonGroup(buttons: List<Button>) =
-    div {
-        className("inline-flex rounded-md shadow-sm")
+fun RenderContext.button(button: Button) =
+    button(button = button, classes = defaultButtonClasses + rounded)
 
-        for (button in buttons) {
-            val classes = mutableListOf(
-                "px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
-                "hover:bg-gray-100 hover:text-blue-700",
-                "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
-                "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
-                "dark:hover:text-white dark:hover:bg-gray-700",
-                "dark:focus:ring-blue-500 dark:focus:text-white"
-            )
-            if (button == buttons.first()) {
-                classes.add("rounded-s-lg")
-            } else if (button == buttons.last()) {
-                classes.add("rounded-e-lg")
-            }
-
-            if (button.type == ButtonType.Button) {
-                buttonGroupButton(classes, button)
-            } else if (button.type == ButtonType.ColorPicker) {
-                buttonGroupColorPicker(classes, button)
-            }
-        }
-    }
-
-private fun RenderContext.buttonGroupButton(classes: List<String>, button: Button) =
+private fun RenderContext.button(button: Button, classes: List<String>) =
     button {
         type("button")
         id(button.id)
         classList(classes)
         button.value?.renderText(into = this)
-        button.text?.let { +it }
-        button.mouseHandler?.let { clicks handledBy it }
+        div {
+            button.icon?.let { icon ->
+                div(baseClass = "inline-block me-3") { icon() }
+            }
+            button.text?.let { +it }
+        }
+        button.clickHandler?.let { clicks handledBy it }
 
         var backgroundElementId: String? = null
         if (button.floaterBlurOnOutsideClick && (button.floaterElement != null || button.floaterElementId != null)) {
@@ -98,10 +92,10 @@ private fun RenderContext.buttonGroupButton(classes: List<String>, button: Butto
         }
     }
 
-private fun RenderContext.buttonGroupColorPicker(classes: MutableList<String>, button: Button) =
+private fun RenderContext.colorPicker(button: Button, classes: List<String>) =
     label {
-        classes.add("z-20 cursor-pointer")//relative
-        classList(classes)
+        val realClasses = classes + listOf("z-20 cursor-pointer")//relative
+        classList(realClasses)
 
         inlineStyle("position:relative;")
         `for`(button.id)
@@ -119,6 +113,25 @@ private fun RenderContext.buttonGroupColorPicker(classes: MutableList<String>, b
                 id(button.id)
                 button.value?.let { value(it) }
                 button.textHandler?.let { changes.values() handledBy it }
+            }
+        }
+    }
+
+fun RenderContext.buttonGroup(buttons: List<Button>) =
+    div {
+        className("inline-flex rounded-md shadow-sm")
+
+        for (button in buttons) {
+            val classes = when (button) {
+                buttons.first() -> defaultButtonClasses + roundedStart
+                buttons.last() -> defaultButtonClasses + roundedEnd
+                else -> defaultButtonClasses
+            }
+
+            if (button.type == ButtonType.Button) {
+                button(button = button, classes = classes)
+            } else if (button.type == ButtonType.ColorPicker) {
+                colorPicker(button = button, classes = classes)
             }
         }
     }

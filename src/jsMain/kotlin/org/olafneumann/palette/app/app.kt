@@ -22,10 +22,12 @@ import org.olafneumann.palette.app.npm.Placement
 import org.olafneumann.palette.app.npm.saveAs
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
+import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
 import org.olafneumann.palette.app.ui.components.checkbox
 import org.olafneumann.palette.app.ui.components.colorBox
 import org.olafneumann.palette.app.ui.components.colorList
+import org.olafneumann.palette.app.ui.components.iconDownload
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.ui.components.warningToast
@@ -208,7 +210,7 @@ fun main() {
                                     textHandler = modelStore.setPrimaryColor
                                 ),
                                 // TODO: Button(text = "Enter hex RGB"),
-                                Button(text = "Randomize Color", mouseHandler = modelStore.randomizePrimaryColor),
+                                Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
                             )
                         )
 
@@ -274,10 +276,10 @@ fun main() {
 
                         buttonGroup(
                             listOf(
-                                Button(text = "Derived from primary", mouseHandler = modelStore.deriveNeutralColor),
-                                Button(text = "Random warm", mouseHandler = modelStore.randomizeWarmNeutralColor),
-                                Button(text = "Random cold", mouseHandler = modelStore.randomizeColdNeutralColor),
-                                Button(text = "Completely random", mouseHandler = modelStore.randomizeNeutralColor),
+                                Button(text = "Derived from primary", clickHandler = modelStore.deriveNeutralColor),
+                                Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
+                                Button(text = "Random cold", clickHandler = modelStore.randomizeColdNeutralColor),
+                                Button(text = "Completely random", clickHandler = modelStore.randomizeNeutralColor),
                             )
                         )
 
@@ -373,7 +375,7 @@ fun main() {
                                 ),
                                 Button(
                                     text = "Add random accent color",
-                                    mouseHandler = modelStore.addRandomAccentColor,
+                                    clickHandler = modelStore.addRandomAccentColor,
                                 ),
                                 Button(text = "Pick custom accent color")
                             )
@@ -452,11 +454,11 @@ fun main() {
                 number = 5,
                 title = "Download",
             ) {
-                button {
-                    type("button")
-                    clicks handledBy modelStore.downloadStuff
-                    +"Download"
-                }
+                button(Button(
+                    icon = { iconDownload() },
+                    text = "Download",
+                    clickHandler = modelStore.downloadStuff
+                ))
             }
         }
     }
