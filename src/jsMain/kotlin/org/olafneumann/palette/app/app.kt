@@ -27,11 +27,13 @@ import org.olafneumann.palette.app.ui.components.checkbox
 import org.olafneumann.palette.app.ui.components.colorBox
 import org.olafneumann.palette.app.ui.components.colorList
 import org.olafneumann.palette.app.ui.components.iconDownload
+import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.ui.components.warningToast
 import org.olafneumann.palette.app.utils.copyToClipboard
 import org.olafneumann.palette.app.utils.toCurrentWindowLocation
+import org.olafneumann.palette.app.utils.toJson
 import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
@@ -82,18 +84,14 @@ fun main() {
 
         private fun checkAccentColorReset(model: PaletteModel): Boolean {
             val hasAccentColorsDefined = model.namedAccentColors.isNotEmpty()
-            var resetAccentColors = false
-            if (hasAccentColorsDefined) {
-                if (window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")) {
-                    resetAccentColors = true
-                }
-            }
+            val resetAccentColors = hasAccentColorsDefined && window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")
+            console.log(hasAccentColorsDefined, resetAccentColors)
             return resetAccentColors
         }
 
-        val setPrimaryColor: Handler<String> = handle { model: PaletteModel, action: String ->
-            Color.hex(action)
-                ?.let { model.setPrimaryColor(primaryColor = it, resetAccentColors = checkAccentColorReset(model)) }
+        val setPrimaryColor: Handler<String> = handle { model: PaletteModel, hex: String ->
+            Color.hex(hex)
+                ?.let { color -> model.setPrimaryColor(primaryColor = color, resetAccentColors = checkAccentColorReset(model)) }
                 ?: model
         }
         val setPrimaryColorEnforcedInShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
@@ -117,6 +115,11 @@ fun main() {
         val randomizeNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.copy(neutralColor = ColorGenerator.randomNeutral())
         }
+        val addAccentColorHex: Handler<String> = handle { model: PaletteModel, hex: String ->
+            Color.hex(hex)
+                ?.let { color -> model.addAccentColor(color) }
+                ?: model
+        }
         val addAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
             model.addAccentColor(color)
         }
@@ -129,21 +132,22 @@ fun main() {
         val updateShadeCount: Handler<Int> =
             handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
 
-        val downloadStuff: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            val css = model.generateCss()
-            val zip = JSZip()
-            zip.file("shades.css", css)
-            zip.generateAsync(js("{type:'blob'}")).then {
-                saveAs(it, "test.zip")
-            }
-
-            // TODO: implement stuff
+        val downloadCSS: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+            downloadFile(filename = "shades.css", content = model.generateCss(), zipFilename = "shades.zip")
             model
         }
 
         val copyColorToClipboard: Handler<Color> = handle { model: PaletteModel, color: Color ->
             copyToClipboard(color.hex())
             model
+        }
+
+        private fun downloadFile(filename: String, content: String, zipFilename: String) {
+            val zip = JSZip()
+            zip.file(filename, content)
+            zip.generateAsync(mapOf("type" to "blob").toJson()).then {
+                saveAs(it, zipFilename)
+            }
         }
     }
 
@@ -248,7 +252,7 @@ fun main() {
                                     colorList(
                                         width = 2.5,
                                         height = 2.5,
-                                        colors,
+                                        colors = colors,
                                         handler = modelStore.copyColorToClipboard
                                     )
                                 }
@@ -307,7 +311,7 @@ fun main() {
                                     colorList(
                                         width = 2.5,
                                         height = 2.5,
-                                        colors,
+                                        colors = colors,
                                         handler = modelStore.copyColorToClipboard
                                     )
                                 }
@@ -334,7 +338,7 @@ fun main() {
                                 text = "Derived from primary color",
                                 floaterElement = {
                                     modelStore.data.map { it.proposedAccentColors }
-                                        .renderEach(idProvider = { it.name }) { color ->
+                                        .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
                                             div {
                                                 className("w-full h-12 p-1")
                                                 colorBox(
@@ -357,7 +361,12 @@ fun main() {
                                 text = "Add random accent color",
                                 clickHandler = modelStore.addRandomAccentColor,
                             ),
-                            Button(text = "Pick custom accent color")
+                            Button(
+                                type = ButtonType.ColorPicker,
+                                value = modelStore.data.map { it.proposedAccentColor.hex() },
+                                text = "Pick custom accent color",
+                                textHandler = modelStore.addAccentColorHex
+                            )
                         )
                     }
 
@@ -371,16 +380,22 @@ fun main() {
                             +"The accent shades would look like this:"
                         }
                         modelStore.data.map { it.accentColorsShadeLists }
-                            .renderEach(idProvider = {
+                            .renderEach(into = this, idProvider = {
                                 "accent_color_${it.name}"
                             }) { shadeList ->
                                 div {
-                                    className("flex flex-row")
-                                    span {
+                                    className("grid grid-cols-12")
+                                    div {
+                                        className("col-span-2")
                                         +shadeList.name
+
+                                        button(Button(
+                                            icon = { iconEdit() },
+                                            //customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
+                                        ))
                                     }
                                     div {
-                                        className("border rounded-lg p-2 mt-2 shadow-inner")
+                                        className("col-span-9 border rounded-lg p-2 shadow-inner")
                                         inlineStyle("max-width:46rem;")
 
                                         colorList(
@@ -390,10 +405,13 @@ fun main() {
                                             handler = modelStore.copyColorToClipboard
                                         )
                                     }
-                                    button(Button(
-                                        icon = { iconTrash() },
-                                        customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
-                                    ))
+                                    div {
+                                        className("col-span-1")
+                                        button(Button(
+                                            icon = { iconTrash() },
+                                            customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
+                                        ))
+                                    }
                                 }
                             }
                     }
@@ -434,8 +452,8 @@ fun main() {
                 button(
                     Button(
                         icon = { iconDownload() },
-                        text = "Download",
-                        clickHandler = modelStore.downloadStuff
+                        text = "CSS",
+                        clickHandler = modelStore.downloadCSS
                     )
                 )
             }

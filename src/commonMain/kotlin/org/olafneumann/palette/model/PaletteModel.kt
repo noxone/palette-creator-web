@@ -25,7 +25,7 @@ data class PaletteModel(
     }
 
     // TODO: Improve way to generate accent colors!
-    private val proposedAccentColor: Color
+    val proposedAccentColor: Color
         get() = (accentColors.lastOrNull() ?: primaryColor).rotate(GOLDEN_ANGLE * accentColorSeed)
 
     val namedAccentColors = List(accentColors.size) { NamedColor(accentColors[it], accentNames[it]) }
@@ -80,6 +80,7 @@ data class PaletteModel(
         copy(
             primaryColor = primaryColor,
             accentColors = if (resetAccentColors) emptyList() else accentColors,
+            accentNames = if (resetAccentColors) emptyList() else accentNames,
             accentColorSeed = if (resetAccentColors) 1 else accentColorSeed,
         )
 
