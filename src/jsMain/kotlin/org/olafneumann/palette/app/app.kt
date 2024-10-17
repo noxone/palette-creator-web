@@ -398,7 +398,7 @@ fun main() {
                                 div {
                                     className("flex flex-row")
                                     span {
-                                        +shadeList.name!!
+                                        +shadeList.name
                                     }
                                     div {
                                         className("border rounded-lg p-2 mt-2 shadow-inner")
@@ -411,12 +411,10 @@ fun main() {
                                             handler = modelStore.copyColorToClipboard
                                         )
                                     }
-                                    button {
-                                        type("button")
-
-                                        iconTrash()
-                                        clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor
-                                    }
+                                    button(Button(
+                                        icon = { iconTrash() },
+                                        customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
+                                    ))
                                 }
                             }
                     }

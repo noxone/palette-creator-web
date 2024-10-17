@@ -8,6 +8,7 @@ import dev.fritz2.core.type
 import dev.fritz2.core.value
 import dev.fritz2.core.values
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.npm.Floater
 import org.olafneumann.palette.app.npm.FloaterEventType
 import org.olafneumann.palette.app.npm.Options
@@ -39,10 +40,11 @@ data class Button(
     val clickHandler: Handler<MouseEvent>? = null,
     val textHandler: Handler<String>? = null,
     val floaterElementId: String? = null,
-    val floaterElement: (RenderContext.(id: String) -> Unit)? = null,
+    val floaterElement: (RenderContext.(String) -> Unit)? = null,
     val floaterOptions: Options? = null,
     val floaterEvents: List<FloaterEventType> = emptyList(),
     val floaterBlurOnOutsideClick: Boolean = true,
+    val customCode: (RenderContext.() -> Unit)? = null,
 )
 
 fun RenderContext.button(button: Button) =
@@ -54,13 +56,14 @@ private fun RenderContext.button(button: Button, classes: List<String>) =
         id(button.id)
         classList(classes)
         button.value?.renderText(into = this)
-        div {
-            button.icon?.let { icon ->
-                div(baseClass = "inline-block me-3") { icon() }
-            }
-            button.text?.let { +it }
+        button.icon?.let { icon ->
+            span { icon() }
+        }
+        button.text?.let { text ->
+            span { +text }
         }
         button.clickHandler?.let { clicks handledBy it }
+        button.customCode?.let { it() }
 
         var backgroundElementId: String? = null
         if (button.floaterBlurOnOutsideClick && (button.floaterElement != null || button.floaterElementId != null)) {

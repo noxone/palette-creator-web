@@ -37,3 +37,10 @@ body {
     bottom:0;
     display:none;
 }
+
+svg {
+    display: inline-block;
+}
+button span+span {
+    margin-left: 0.5rem;
+}
