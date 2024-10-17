@@ -27,6 +27,7 @@ import org.olafneumann.palette.app.ui.components.buttonGroup
 import org.olafneumann.palette.app.ui.components.checkbox
 import org.olafneumann.palette.app.ui.components.colorBox
 import org.olafneumann.palette.app.ui.components.colorList
+import org.olafneumann.palette.app.ui.components.createColorPickerFloater
 import org.olafneumann.palette.app.ui.components.iconDownload
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
@@ -332,54 +333,27 @@ fun main() {
                 div {
                     className("grid grid-cols-12")
 
-                    val tooltipId = IdGenerator.next
-
                     div {
                         className("col-span-12")
 
-                        fun RenderContext.createColorPickerFloater(id: String) =
-                            div {
-                                id(id)
-                                div {
-                                    id(tooltipId)
-                                    className("shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800")
-
-                                    div {
-                                        modelStore.data.map { it.proposedAccentColors }
-                                            .renderEach(into = this) { color ->
-                                                div {
-                                                    className("w-full h-12 p-1")
-                                                    colorBox(
-                                                        color = color.color,
-                                                        textColor = color.color.fittingFontColor(
-                                                            Color(1.0, 1.0, 1.0),
-                                                            Color(0.0, 0.0, 0.0)
-                                                        ),
-                                                        textToRender = "${color.name.name}: {{hex}}",
-                                                        handler = modelStore.addAccentColor,
-                                                    )
-                                                }
-                                            }
-                                    }
-                                }
-                            }
-
-                        buttonGroup(
-                            listOf(
-                                Button(
-                                    text = "Derived from primary color",
-                                    floaterElement = { id -> createColorPickerFloater(id) },
-                                    floaterOptions = Options(placement = Placement.bottomStart),
-                                    floaterEvents = listOf(FloaterEventType.Click),
-                                    floaterBlurOnOutsideClick = true,
-                                ),
-                                Button(
-                                    text = "Add random accent color",
-                                    clickHandler = modelStore.addRandomAccentColor,
-                                ),
-                                Button(text = "Pick custom accent color")
+                        modelStore.data.map { it.proposedAccentColors }.render(into = this) { proposedColors ->
+                            buttonGroup(
+                                listOf(
+                                    Button(
+                                        text = "Derived from primary color",
+                                        floaterElement = { id -> createColorPickerFloater(id, proposedColors, handler = modelStore.addAccentColor) },
+                                        floaterOptions = Options(placement = Placement.bottomStart),
+                                        floaterEvents = listOf(FloaterEventType.Click),
+                                        floaterBlurOnOutsideClick = true,
+                                    ),
+                                    Button(
+                                        text = "Add random accent color",
+                                        clickHandler = modelStore.addRandomAccentColor,
+                                    ),
+                                    Button(text = "Pick custom accent color")
+                                )
                             )
-                        )
+                        }
                     }
 
                     div {
