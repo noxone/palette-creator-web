@@ -2,6 +2,8 @@ import com.google.devtools.ksp.gradle.KspTaskMetadata
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -95,3 +97,9 @@ detekt {
 
     ignoreFailures = true
 }
+
+// https://kotlinlang.org/docs/js-project-setup.html#installing-npm-dependencies-with-ignore-scripts-by-default
+plugins.withType<YarnPlugin> {
+    rootProject.the<YarnRootExtension>().ignoreScripts = false
+}
+
