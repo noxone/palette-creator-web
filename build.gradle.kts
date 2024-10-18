@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.google.ksp)
-    id("io.gitlab.arturbosch.detekt").version("1.23.6")
+    id("io.gitlab.arturbosch.detekt").version("1.23.7")
 }
 
 repositories {
