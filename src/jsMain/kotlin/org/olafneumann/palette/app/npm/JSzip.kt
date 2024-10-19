@@ -3,7 +3,7 @@ package org.olafneumann.palette.app.npm
 import org.w3c.files.Blob
 import kotlin.js.Promise
 
-@JsModule("JSZip")
+@JsModule("jszip")
 @JsNonModule
 external class JSZip {
     fun file(fileName: String, content: String)
