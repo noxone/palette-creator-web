@@ -1,0 +1,71 @@
+name: Build project
+
+on:
+  workflow_dispatch:
+    inputs:
+      uploadArtifacts:
+        description: "Define whether or not to upload the artifacts"
+        type: boolean
+        required: false
+        default: false
+      includeReports:
+        description: "Shall report output be included in the uploaded artifacts?"
+        type: boolean
+        required: false
+        default: true
+  workflow_call:
+    inputs:
+      uploadArtifacts:
+        type: boolean
+        required: false
+        default: false
+      includeReports:
+        type: boolean
+        required: false
+        default: true
+
+# based https://docs.github.com/en/actions/guides/building-and-testing-java-with-gradle
+jobs:
+  build-project:
+    runs-on: ubuntu-latest
+    name: Build with Java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: adopt
+          java-version: 21
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Run Gradle tasks
+        run: ./gradlew clean build detektJsMain
+      - name: Replace placeholders
+        run: |
+          cp -R -v ./build/dist/js/productionExecutable ./build/distributions
+          sed "s/GIT_COMMIT_ID/$(git rev-parse HEAD)/" ./build/distributions/index.html > temp && mv temp ./build/distributions/index.html
+          sed "s/SHORT_COMMIT_ID/$(git rev-parse --short HEAD)/" ./build/distributions/index.html > temp && mv temp ./build/distributions/index.html
+      - name: Cleanup Gradle Cache
+        # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
+        # Restoring these files from a GitHub Actions cache might cause problems for future builds.
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
+      # TODO: re-enable
+      #- name: Copy reports
+      #  if: ${{ inputs.uploadArtifacts && inputs.includeReports }}
+      #  run: mkdir build/distributions/reports && cp -R -v build/reports/tests/allTests build/distributions/reports && cp -v build/reports/detekt/detekt.html build/distributions/reports/
+      - name: Upload artifacts
+        if: ${{ inputs.uploadArtifacts }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: build/distributions
