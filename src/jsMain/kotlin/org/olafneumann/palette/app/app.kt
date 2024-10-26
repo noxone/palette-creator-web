@@ -155,17 +155,16 @@ fun main() {
     render(selector = "#target") {
         Window.resizes handledBy colorCountStore.setSize
 
-        div {
-            className("md:container md:mx-auto text-slate-900")
-
-
-            div {
+        div("md:container md:mx-auto text-slate-900") {
+            div("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center") {
                 id(HEADER_ID)
-                className("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center")
-                div {
-                    className("on-title-font text-5xl sm:text-6xl md:text-7xl py-4 sm:py-6")
-
-                    +"Palette Creator"
+                div("py-4 sm:py-6") {
+                    div("on-title-font text-5xl sm:text-6xl md:text-7xl") {
+                        +"Color Shades"
+                    }
+                    p {
+                        +"Generate shades and color palettes for your coding projects."
+                    }
                 }
                 colorCountStore.data.render { colorCount ->
                     colorList(
@@ -180,17 +179,6 @@ fun main() {
                         })
                 }
             }
-            div {
-                className("mx-7 p-5 bg-orange-300 rounded-b-xl shadow-xl")
-                div {
-                    p {
-                        +"You want to create a color palette for your app or website. Then this might be a good starting point for you. "
-                    }
-                    p {
-                        +"In a few steps we will create a nice color palette for you."
-                    }
-                }
-            }
 
             section(
                 number = 1,
@@ -198,12 +186,8 @@ fun main() {
                 instruction = "Please pick or enter the main color you want to use for your application.",
                 explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
             ) {
-                div {
-                    className("grid grid-cols-12")
-
-                    div {
-                        className("col-span-8")
-
+                div("grid grid-cols-12") {
+                    div("col-span-8") {
                         buttonGroup(
                             Button(
                                 type = ButtonType.ColorPicker,
@@ -226,8 +210,7 @@ fun main() {
                         }
                     }
 
-                    div {
-                        className("col-span-4 w-full h-full")
+                    div("col-span-4 w-full h-full") {
                         modelStore.data.render(into = this) {
                             colorBox(
                                 color = it.primaryColor,
