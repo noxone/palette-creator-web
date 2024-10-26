@@ -6,9 +6,16 @@ import kotlin.math.abs
 data class ShadeList(
     val name: String,
     val baseColor: Color,
-    val shadedColors: List<ShadedColor>
+    val shadedColors: List<ShadedColor>,
 ) {
-    constructor(name: String, baseColor: Color, shadeCount: Int, min: Double = 0.1, max: Double = 0.9, enforceColorInShades: Boolean)
+    constructor(
+        name: String,
+        baseColor: Color,
+        shadeCount: Int,
+        min: Double = 0.1,
+        max: Double = 0.9,
+        enforceColorInShades: Boolean,
+    )
             : this(
         name = name,
         baseColor = baseColor,
@@ -33,7 +40,7 @@ data class ShadeList(
             shadeCount: Int,
             min: Double = 0.1,
             max: Double = 0.9,
-            ensureColorIsIncluded: Boolean
+            ensureColorIsIncluded: Boolean,
         ): List<ShadedColor> {
             if (shadeCount <= 0) {
                 return emptyList()

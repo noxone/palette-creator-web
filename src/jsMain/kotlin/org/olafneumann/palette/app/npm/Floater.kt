@@ -12,10 +12,11 @@ import org.olafneumann.palette.app.utils.toJson
 import org.w3c.dom.HTMLElement
 
 private const val KEYCODE_ESCAPE = 0x0001
+private const val DEFAULT_OFFSET = 5
 
 data class Options(
     val placement: Placement = Placement.Right,
-    val middleware: Array<Middleware> = arrayOf(offset(5), flip(), shift()),
+    val middleware: Array<Middleware> = arrayOf(offset(DEFAULT_OFFSET), flip(), shift()),
 ) {
     private fun toMap(): Map<String, Any> =
         mapOf(

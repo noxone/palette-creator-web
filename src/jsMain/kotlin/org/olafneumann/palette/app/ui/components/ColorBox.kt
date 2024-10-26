@@ -40,6 +40,7 @@ fun RenderContext.colorList(
         }
     }
 
+@Suppress("LongParameterList")
 fun RenderContext.colorBox(
     id: String? = null,
     color: Color,
