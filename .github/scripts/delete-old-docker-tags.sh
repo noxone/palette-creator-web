@@ -6,7 +6,7 @@ set -e
 # set username and password
 UNAME=$docker_username
 UPASS=$docker_password
-REPO_LIST="palettecreator"
+REPO_LIST="shades"
 KEEP=$(( 15 > numberOfImagesToKeep ? 15 : numberOfImagesToKeep ))
 
 echo "Logging in..."
