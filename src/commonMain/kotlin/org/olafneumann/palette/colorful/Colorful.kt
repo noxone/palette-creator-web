@@ -47,18 +47,25 @@ private fun clamp01(value: Double): Double {
 }
 
 // This is the tolerance used when comparing colors using AlmostEqualRgb.
-private const val Delta: Double = 1.0 / 255.0
+private const val DELTA: Double = 1.0 / 255.0
 
 // This is the default reference white point.
-val D65: WhiteReference = WhiteReference(x = 0.95047, y = 1.00000, z = 1.08883)
+private val D65: WhiteReference = WhiteReference(x = 0.95047, y = 1.00000, z = 1.08883)
 
 // And another one.
 @Suppress("Unused")
-val D50: WhiteReference = WhiteReference(x = 0.96422, y = 1.00000, z = 0.82521)
+private val D50: WhiteReference = WhiteReference(x = 0.96422, y = 1.00000, z = 0.82521)
 
-var hSLuvD65: WhiteReference = WhiteReference(x = 0.95045592705167, y = 1.0, z = 1.089057750759878)
+private var hSLuvD65: WhiteReference = WhiteReference(x = 0.95045592705167, y = 1.0, z = 1.089057750759878)
 
-@Suppress("Unused", "MemberVisibilityCanBePrivate", "DuplicateCodeFragment")
+@Suppress(
+    "Unused",
+    "MemberVisibilityCanBePrivate",
+    "DuplicateCodeFragment",
+    "TooManyFunctions",
+    "MagicNumber",
+    "MaxLineLength"
+)
 data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) : Comparable<Color> {
 
     fun RGBA(): RGBA {
@@ -137,12 +144,16 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
     fun almostEqualRgb(color2: Color): Boolean {
         return abs(this.r - color2.r) +
                 abs(this.g - color2.g) +
-                abs(this.b - color2.b) < (3.0 * Delta)
+                abs(this.b - color2.b) < (3.0 * DELTA)
     }
 
     // You don't really want to use this, do you? Go for BlendLab, BlendLuv or BlendHcl.
     fun blendRgb(color2: Color, t: Double): Color {
-        return Color(r = this.r + t * (color2.r - this.r), g = this.g + t * (color2.g - this.g), b = this.b + t * (color2.b - this.b))
+        return Color(
+            r = this.r + t * (color2.r - this.r),
+            g = this.g + t * (color2.g - this.g),
+            b = this.b + t * (color2.b - this.b)
+        )
     }
 
 
@@ -225,9 +236,11 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
                 this.r -> {
                     (this.g - this.b) / (max - min)
                 }
+
                 this.g -> {
                     2.0 + (this.b - this.r) / (max - min)
                 }
+
                 else -> {
                     4.0 + (this.r - this.g) / (max - min)
                 }
@@ -252,8 +265,11 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
 
     // Add 0.5 for rounding
     private fun Double.asRoundedByte(): Int = (this * 255.0 + 0.5).toInt()
+
     @OptIn(ExperimentalStdlibApi::class)
-    private fun Int.asHex(): String = this.toByte().toHexString(format = HexFormat.UpperCase).padStart(length = 2, padChar = '0')
+    private fun Int.asHex(): String =
+        this.toByte().toHexString(format = HexFormat.UpperCase).padStart(length = 2, padChar = '0')
+
     private fun Double.asHexByte(): String = asRoundedByte().asHex()
 
     // LinearRgb converts the color into the linear RGB space (see http://www.sjbrown.co.uk/2004/05/14/gamma-correct-rendering/).
@@ -342,7 +358,7 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
     // a given reference white. (i.e. the monitor's white)
     fun labWhiteRef(whiteReference: WhiteReference): LAB {
         val (x, y, z) = this.xyz()
-        return xyzToLabWhiteReference(x= x, y = y, z = z, whiteReference = whiteReference)
+        return xyzToLabWhiteReference(x = x, y = y, z = z, whiteReference = whiteReference)
     }
 
     // DistanceLab is a good measure of visual similarity between two colors!
@@ -453,14 +469,14 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
         val deltaCp = cp2 - cp1
         var dhp = 0.0
         val cpProduct = cp1 * cp2
-                if (cpProduct != 0.0) {
-                    dhp = hp2 - hp1
-                    if (dhp > 180) {
-                        dhp -= 360
-                    } else if (dhp < -180) {
-                        dhp += 360
-                    }
-                }
+        if (cpProduct != 0.0) {
+            dhp = hp2 - hp1
+            if (dhp > 180) {
+                dhp -= 360
+            } else if (dhp < -180) {
+                dhp += 360
+            }
+        }
         val deltaHp = 2 * sqrt(cpProduct) * sin(dhp / 2 * PI / 180)
 
         val lpmean = (l1 + l2) / 2
@@ -477,7 +493,10 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
             }
         }
 
-        val t = 1 - 0.17 * cos((hpmean - 30) * PI / 180) + 0.24 * cos(2 * hpmean * PI / 180) + 0.32 * cos((3 * hpmean + 6) * PI / 180) - 0.2 * cos((4 * hpmean - 63) * PI / 180)
+        val t =
+            1 - 0.17 * cos((hpmean - 30) * PI / 180) + 0.24 * cos(2 * hpmean * PI / 180) + 0.32 * cos((3 * hpmean + 6) * PI / 180) - 0.2 * cos(
+                (4 * hpmean - 63) * PI / 180
+            )
         val deltaTheta = 30 * exp(-sq((hpmean - 275) / 25))
         val rc = 2 * sqrt(cpmean.pow(7) / (cpmean.pow(7) + 25.0.pow(7)))
         val sl = 1 + sqrt(0.015 * sq(lpmean - 50)) / (20 + sq(lpmean - 50))
@@ -493,9 +512,11 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
     fun blendLab(c2: Color, t: Double): Color {
         val (l1, a1, b1) = this.lab()
         val (l2, a2, b2) = c2.lab()
-        return lab(l = l1 + t * (l2 - l1),
+        return lab(
+            l = l1 + t * (l2 - l1),
             a = a1 + t * (a2 - a1),
-            b = b1 + t * (b2 - b1))
+            b = b1 + t * (b2 - b1)
+        )
     }
 
     // DistanceLuv is a good measure of visual similarity between two colors!
@@ -512,9 +533,11 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
     fun blendLuv(c2: Color, t: Double): Color {
         val (l1, u1, v1) = this.luv()
         val (l2, u2, v2) = c2.luv()
-        return luv(l = l1 + t * (l2 - l1),
+        return luv(
+            l = l1 + t * (l2 - l1),
             u = u1 + t * (u2 - u1),
-            v = v1 + t * (v2 - v1))
+            v = v1 + t * (v2 - v1)
+        )
     }
 
     /// HCL ///
@@ -591,7 +614,6 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
     }
 
 
-
     // HSLuv returns the Hue, Saturation and Luminance of the color in the HSLuv
     // color space. Hue in [0..360], a Saturation [0..1], and a Luminance
     // (lightness) in [0..1].
@@ -629,7 +651,6 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
     }
 
 
-
     override fun compareTo(other: Color): Int {
         return when {
             this.r != other.r -> this.r.compareTo(other.r)
@@ -638,6 +659,7 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
         }
     }
 
+    @Suppress("TooManyFunctions")
     companion object {
         // Utility used by Hxx color-spaces for interpolating between two angles in [0,360].
         private fun interpolateAngle(a0: Double, a1: Double, t: Double): Double {
@@ -649,6 +671,7 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
 
 
         // Hsv creates a new Color given a Hue in [0..360], a Saturation and a Value in [0..1]
+        @Suppress("CyclomaticComplexMethod")
         fun hsv(h: Double, s: Double, v: Double): Color {
             val hp = h / 60.0
             val c = v * s
@@ -683,6 +706,7 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
         }
 
         // Hsl creates a new Color given a Hue in [0..360], a Saturation [0..1], and a Luminance (lightness) in [0..1]
+        @Suppress("CyclomaticComplexMethod")
         fun hsl(h: Double, s: Double, l: Double): Color {
             if (s == 0.0) {
                 return Color(r = l, g = l, b = l)
@@ -892,8 +916,10 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
             if (abs(n) < 1e-14) {
                 // When we have black, Bruce Lindbloom recommends to use
                 // the reference white's chromacity for x and y.
-                computedX = whiteReference.whiteReference[0] / (whiteReference.whiteReference[0] + whiteReference.whiteReference[1] + whiteReference.whiteReference[2])
-                computedY = whiteReference.whiteReference[1] / (whiteReference.whiteReference[0] + whiteReference.whiteReference[1] + whiteReference.whiteReference[2])
+                computedX =
+                    whiteReference.whiteReference[0] / (whiteReference.whiteReference[0] + whiteReference.whiteReference[1] + whiteReference.whiteReference[2])
+                computedY =
+                    whiteReference.whiteReference[1] / (whiteReference.whiteReference[0] + whiteReference.whiteReference[1] + whiteReference.whiteReference[2])
             } else {
                 computedX = x / n
                 computedY = y / n
@@ -1081,7 +1107,11 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
                 whiteReference.whiteReference[1] * cub((l + 0.16) / 1.16)
             }
 
-            val (un, vn) = xyzToUv(x = whiteReference.whiteReference[0], y = whiteReference.whiteReference[1], z = whiteReference.whiteReference[2])
+            val (un, vn) = xyzToUv(
+                x = whiteReference.whiteReference[0],
+                y = whiteReference.whiteReference[1],
+                z = whiteReference.whiteReference[2]
+            )
             if (l != 0.0) {
                 val ubis = u / (13.0 * l) + un
                 val vbis = v / (13.0 * l) + vn
@@ -1116,7 +1146,11 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
                 1.16 * cbrt(y / whiteReference.whiteReference[1]) - 0.16
             }
             val (ubis, vbis) = xyzToUv(x = x, y = y, z = z)
-            val (un, vn) = xyzToUv(x = whiteReference.whiteReference[0], y = whiteReference.whiteReference[1], z = whiteReference.whiteReference[2])
+            val (un, vn) = xyzToUv(
+                x = whiteReference.whiteReference[0],
+                y = whiteReference.whiteReference[1],
+                z = whiteReference.whiteReference[2]
+            )
             val u: Double = 13.0 * l * (ubis - un)
             val v: Double = 13.0 * l * (vbis - vn)
             return LUV(l, u, v)
@@ -1137,9 +1171,6 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
             }
             return UV(u, v)
         }
-
-
-
 
 
         fun luvLChToHSLuv(l: Double, c: Double, h: Double): HSL {
@@ -1251,8 +1282,8 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
             for (line in getBounds(l)) {
                 val length = lengthOfRayUntilIntersect(theta = hRad, x = line[0], y = line[1])
                 if (length > 0.0 && length < minLength) {
-                minLength = length
-            }
+                    minLength = length
+                }
             }
             return minLength
         }
@@ -1269,7 +1300,8 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
             for (i in m.indices) {
                 for (k in 0..<2) {
                     val top1: Double = (284_517.0 * m[i][0] - 94839.0 * m[i][2]) * sub2
-                    val top2: Double = (838_422.0 * m[i][2] + 769_860.0 * m[i][1] + 731_718.0 * m[i][0]) * l * sub2 - 769_860.0 * k.toDouble() * l
+                    val top2: Double =
+                        (838_422.0 * m[i][2] + 769_860.0 * m[i][1] + 731_718.0 * m[i][0]) * l * sub2 - 769_860.0 * k.toDouble() * l
                     val bottom: Double = (632_260.0 * m[i][2] - 126_452.0 * m[i][1]) * sub2 + 126_452.0 * k.toDouble()
                     ret[i * 2 + k][0] = top1 / bottom
                     ret[i * 2 + k][1] = top2 / bottom

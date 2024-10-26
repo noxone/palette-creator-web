@@ -7,16 +7,16 @@ import dev.fritz2.core.SimpleHandler
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.utils.toJson
 import org.w3c.dom.HTMLElement
 
 private const val KEYCODE_ESCAPE = 0x0001
+private const val DEFAULT_OFFSET = 5
 
 data class Options(
-    val placement: Placement = Placement.right,
-    val middleware: Array<Middleware> = arrayOf(offset(5), flip(), shift()),
+    val placement: Placement = Placement.Right,
+    val middleware: Array<Middleware> = arrayOf(offset(DEFAULT_OFFSET), flip(), shift()),
 ) {
     private fun toMap(): Map<String, Any> =
         mapOf(
@@ -29,10 +29,12 @@ data class Options(
 
 @Suppress("unused")
 enum class Placement {
-    right, bottom, left, top, rightStart, rightEnd, bottomStart, bottomEnd, leftStart, leftEnd, topStart, topEnd;
+    Right, Bottom, Left, Top, RightStart, RightEnd, BottomStart, BottomEnd, LeftStart, LeftEnd, TopStart, TopEnd;
 
     var string: String =
-        name.replace(Regex("[A-Z]"), "-$0").lowercase()
+        name.replace(Regex("[A-Z]"), "-$0")
+            .replace(Regex("^-"), "")
+            .lowercase()
 }
 
 data class ShiftOptions(
@@ -136,11 +138,11 @@ class Floater(
         }, timeout)
     }
 
-    fun install(`in`: HtmlTag<*>, `for`: FloaterEventType) {
-        if (`for` == FloaterEventType.MouseOver) {
-            `in`.installForMouseOver()
-        } else if (`for` == FloaterEventType.Click) {
-            `in`.installForClick()
+    fun install(inHtmlTag: HtmlTag<*>, forType: FloaterEventType) {
+        if (forType == FloaterEventType.MouseOver) {
+            inHtmlTag.installForMouseOver()
+        } else if (forType == FloaterEventType.Click) {
+            inHtmlTag.installForClick()
         }
     }
 

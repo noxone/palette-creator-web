@@ -79,7 +79,7 @@ private fun RenderContext.button(button: Button, classes: List<String>) =
                 options = button.floaterOptions ?: Options()
             )
 
-            button.floaterEvents.forEach { floater.install(`in` = this, `for` = it) }
+            button.floaterEvents.forEach { floater.install(inHtmlTag = this, forType = it) }
         }
 
         button.floaterElement?.let {
@@ -94,7 +94,7 @@ private fun RenderContext.button(button: Button, classes: List<String>) =
                 it(this@createFloater)
             }
 
-            button.floaterEvents.forEach { floater.install(`in` = this, `for` = it) }
+            button.floaterEvents.forEach { floater.install(inHtmlTag = this, forType = it) }
         }
     }
 

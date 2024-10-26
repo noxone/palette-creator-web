@@ -54,6 +54,7 @@ private const val SHADES_MAX = 15
 fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
     parse(URL(document.URL).searchParams.toMap())
 
+@Suppress("LongMethod")
 fun main() {
 
     val colorCountStore = object : RootStore<Int>(min(1536, window.innerWidth) / COLOR_COUNT_DIV, job = Job()) {
@@ -353,7 +354,7 @@ fun main() {
                                             }
                                         }
                                 },
-                                floaterOptions = Options(placement = Placement.bottomStart),
+                                floaterOptions = Options(placement = Placement.BottomStart),
                                 floaterEvents = listOf(FloaterEventType.Click),
                                 floaterBlurOnOutsideClick = true,
                             ),

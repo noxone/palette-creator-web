@@ -3,13 +3,13 @@ package org.olafneumann.palette.colors
 import org.olafneumann.palette.colorful.Color
 
 enum class ColorName(val from: Double, val to: Double) {
-    red(from = 306.0, to = 14.0),
-    orange(from = 14.0, to = 42.0),
-    yellow(from = 42.0, to = 70.0),
-    green(from = 70.0, to = 167.0),
-    aqua(from = 167.0, to = 188.0),
-    blue(from = 188.0, to = 252.0),
-    purple(from = 252.0, to = 306.0);
+    Red(from = 306.0, to = 14.0),
+    Orange(from = 14.0, to = 42.0),
+    Yellow(from = 42.0, to = 70.0),
+    Green(from = 70.0, to = 167.0),
+    Aqua(from = 167.0, to = 188.0),
+    Blue(from = 188.0, to = 252.0),
+    Purple(from = 252.0, to = 306.0);
 
     companion object {
         private fun into360(value: Double): Double {
@@ -30,7 +30,7 @@ enum class ColorName(val from: Double, val to: Double) {
                     return colorName
                 }
             }
-            return red
+            return Red
         }
 
         fun Color.colorName(): ColorName = fromDegree(this.hsl().h)

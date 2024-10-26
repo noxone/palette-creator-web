@@ -19,9 +19,7 @@ data class PaletteModel(
     private val accentNames: List<String>,
 ) {
     init {
-        if (accentColors.size != accentNames.size) {
-            throw IllegalArgumentException("accentColors size != accentNames size")
-        }
+        require(accentColors.size == accentNames.size) { "accentColors size != accentNames size" }
     }
 
     // TODO: Improve way to generate accent colors!
