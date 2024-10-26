@@ -85,14 +85,20 @@ fun main() {
 
         private fun checkAccentColorReset(model: PaletteModel): Boolean {
             val hasAccentColorsDefined = model.namedAccentColors.isNotEmpty()
-            val resetAccentColors = hasAccentColorsDefined && window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")
+            val resetAccentColors =
+                hasAccentColorsDefined && window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")
             console.log(hasAccentColorsDefined, resetAccentColors)
             return resetAccentColors
         }
 
         val setPrimaryColor: Handler<String> = handle { model: PaletteModel, hex: String ->
             Color.hex(hex)
-                ?.let { color -> model.setPrimaryColor(primaryColor = color, resetAccentColors = checkAccentColorReset(model)) }
+                ?.let { color ->
+                    model.setPrimaryColor(
+                        primaryColor = color,
+                        resetAccentColors = checkAccentColorReset(model)
+                    )
+                }
                 ?: model
         }
         val setPrimaryColorEnforcedInShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
@@ -157,10 +163,11 @@ fun main() {
 
         div("md:container md:mx-auto text-slate-900") {
             div("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center") {
+                // TODO: use color 57A0CC
                 id(HEADER_ID)
                 div("py-4 sm:py-6") {
                     div("on-title-font text-5xl sm:text-6xl md:text-7xl") {
-                        +"Color Shades"
+                        +"Shade Generator"
                     }
                     p {
                         +"Generate shades and color palettes for your coding projects."
@@ -373,10 +380,12 @@ fun main() {
                                         className("col-span-2")
                                         +shadeList.name
 
-                                        button(Button(
-                                            icon = { iconEdit() },
-                                            //customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
-                                        ))
+                                        button(
+                                            Button(
+                                                icon = { iconEdit() },
+                                                //customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
+                                            )
+                                        )
                                     }
                                     div {
                                         className("col-span-9 border rounded-lg p-2 shadow-inner")
@@ -442,6 +451,7 @@ fun main() {
                 )
             }
         }
+
+        // footer()
     }
 }
-
