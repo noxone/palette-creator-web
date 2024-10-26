@@ -58,7 +58,7 @@ val D50: WhiteReference = WhiteReference(x = 0.96422, y = 1.00000, z = 0.82521)
 
 var hSLuvD65: WhiteReference = WhiteReference(x = 0.95045592705167, y = 1.0, z = 1.089057750759878)
 
-@Suppress("Unused", "MemberVisibilityCanBePrivate", "DuplicateCodeFragment")
+@Suppress("Unused", "MemberVisibilityCanBePrivate", "DuplicateCodeFragment", "TooManyFunctions")
 data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) : Comparable<Color> {
 
     fun RGBA(): RGBA {
@@ -638,6 +638,7 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
         }
     }
 
+    @Suppress("TooManyFunctions")
     companion object {
         // Utility used by Hxx color-spaces for interpolating between two angles in [0,360].
         private fun interpolateAngle(a0: Double, a1: Double, t: Double): Double {
@@ -649,6 +650,7 @@ data class Color(var r: Double = 0.0, var g: Double = 0.0, var b: Double = 0.0) 
 
 
         // Hsv creates a new Color given a Hue in [0..360], a Saturation and a Value in [0..1]
+        @Suppress("CyclomaticComplexMethod")
         fun hsv(h: Double, s: Double, v: Double): Color {
             val hp = h / 60.0
             val c = v * s

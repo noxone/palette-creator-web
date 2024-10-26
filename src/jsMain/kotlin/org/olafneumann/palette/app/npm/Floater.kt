@@ -7,7 +7,6 @@ import dev.fritz2.core.SimpleHandler
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.utils.toJson
 import org.w3c.dom.HTMLElement
