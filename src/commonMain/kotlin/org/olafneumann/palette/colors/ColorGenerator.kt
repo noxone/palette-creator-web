@@ -14,9 +14,9 @@ object ColorGenerator {
         return Color.hsluv(h = from.hsluv().h, s = 0.05, l = 0.5)
     }
 
-    fun randomNeutralCold(): Color = randomNeutral(ColorName.blue, ColorName.aqua, ColorName.green)
+    fun randomNeutralCold(): Color = randomNeutral(ColorName.Blue, ColorName.Aqua, ColorName.Green)
 
-    fun randomNeutralWarm(): Color = randomNeutral(ColorName.red, ColorName.purple, ColorName.orange, ColorName.yellow)
+    fun randomNeutralWarm(): Color = randomNeutral(ColorName.Red, ColorName.Purple, ColorName.Orange, ColorName.Yellow)
 
     fun randomNeutral(vararg allowedColorNames: ColorName): Color {
         val nextH = { Random.nextDouble() * 360 }

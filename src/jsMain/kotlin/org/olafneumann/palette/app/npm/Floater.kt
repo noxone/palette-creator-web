@@ -14,7 +14,7 @@ import org.w3c.dom.HTMLElement
 private const val KEYCODE_ESCAPE = 0x0001
 
 data class Options(
-    val placement: Placement = Placement.right,
+    val placement: Placement = Placement.Right,
     val middleware: Array<Middleware> = arrayOf(offset(5), flip(), shift()),
 ) {
     private fun toMap(): Map<String, Any> =
@@ -28,10 +28,12 @@ data class Options(
 
 @Suppress("unused")
 enum class Placement {
-    right, bottom, left, top, rightStart, rightEnd, bottomStart, bottomEnd, leftStart, leftEnd, topStart, topEnd;
+    Right, Bottom, Left, Top, RightStart, RightEnd, BottomStart, BottomEnd, LeftStart, LeftEnd, TopStart, TopEnd;
 
     var string: String =
-        name.replace(Regex("[A-Z]"), "-$0").lowercase()
+        name.replace(Regex("[A-Z]"), "-$0")
+            .replace(Regex("^-"), "")
+            .lowercase()
 }
 
 data class ShiftOptions(

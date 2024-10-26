@@ -353,7 +353,7 @@ fun main() {
                                             }
                                         }
                                 },
-                                floaterOptions = Options(placement = Placement.bottomStart),
+                                floaterOptions = Options(placement = Placement.BottomStart),
                                 floaterEvents = listOf(FloaterEventType.Click),
                                 floaterBlurOnOutsideClick = true,
                             ),
