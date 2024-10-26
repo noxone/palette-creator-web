@@ -137,11 +137,11 @@ class Floater(
         }, timeout)
     }
 
-    fun install(`in`: HtmlTag<*>, `for`: FloaterEventType) {
-        if (`for` == FloaterEventType.MouseOver) {
-            `in`.installForMouseOver()
-        } else if (`for` == FloaterEventType.Click) {
-            `in`.installForClick()
+    fun install(inHtmlTag: HtmlTag<*>, forType: FloaterEventType) {
+        if (forType == FloaterEventType.MouseOver) {
+            inHtmlTag.installForMouseOver()
+        } else if (forType == FloaterEventType.Click) {
+            inHtmlTag.installForClick()
         }
     }
 
