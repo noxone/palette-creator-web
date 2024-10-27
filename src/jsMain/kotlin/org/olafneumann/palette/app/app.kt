@@ -15,10 +15,8 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.npm.FloaterEventType
-import org.olafneumann.palette.app.npm.JSZip
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
-import org.olafneumann.palette.app.npm.saveAs
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
 import org.olafneumann.palette.app.ui.components.button
@@ -32,14 +30,14 @@ import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.ui.components.warningToast
 import org.olafneumann.palette.app.utils.copyToClipboard
+import org.olafneumann.palette.app.utils.startDownload
 import org.olafneumann.palette.app.utils.toCurrentWindowLocation
-import org.olafneumann.palette.app.utils.toJson
 import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.fittingFontColor
+import org.olafneumann.palette.model.OutputGenerator
 import org.olafneumann.palette.model.PaletteModel
-import org.olafneumann.palette.model.generateCss
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
@@ -56,7 +54,6 @@ fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
 
 @Suppress("LongMethod")
 fun main() {
-
     val colorCountStore = object : RootStore<Int>(min(1536, window.innerWidth) / COLOR_COUNT_DIV, job = Job()) {
         val setSize: Handler<Event> = handle { _: Int, _: Event ->
             val element = document.getElementById(HEADER_ID)
@@ -139,22 +136,14 @@ fun main() {
         val updateShadeCount: Handler<Int> =
             handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
 
-        val downloadCSS: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            downloadFile(filename = "shades.css", content = model.generateCss(), zipFilename = "shades.zip")
+        val downloadOutput: Handler<OutputGenerator> = handle { model, generator ->
+            generator.generateOutput(model).startDownload()
             model
         }
 
         val copyColorToClipboard: Handler<Color> = handle { model: PaletteModel, color: Color ->
             copyToClipboard(color.hex())
             model
-        }
-
-        private fun downloadFile(filename: String, content: String, zipFilename: String) {
-            val zip = JSZip()
-            zip.file(filename, content)
-            zip.generateAsync(mapOf("type" to "blob").toJson()).then {
-                saveAs(it, zipFilename)
-            }
         }
     }
 
@@ -442,13 +431,25 @@ fun main() {
                 number = 5,
                 title = "Download",
             ) {
-                button(
-                    Button(
-                        icon = { iconDownload() },
-                        text = "CSS",
-                        clickHandler = modelStore.downloadCSS
-                    )
-                )
+                div("grid grid-cols-12 gap-2") {
+                    for (generator in OutputGenerator.allGenerators) {
+                        div("col-span-2") {
+                            button(
+                                Button(
+                                    customClass = "w-full",
+                                    icon = { iconDownload() },
+                                    text = generator.title,
+                                    customCode = { clicks.map { generator } handledBy modelStore.downloadOutput }
+                                )
+                            )
+                        }
+                        div("col-span-10 place-self-center w-full") {
+                            span {
+                                +generator.description
+                            }
+                        }
+                    }
+                }
             }
         }
 

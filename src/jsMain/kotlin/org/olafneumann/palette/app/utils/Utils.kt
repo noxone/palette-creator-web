@@ -1,6 +1,10 @@
 package org.olafneumann.palette.app.utils
 
+import org.olafneumann.palette.app.npm.JSZip
+import org.olafneumann.palette.app.npm.saveAs
+import org.olafneumann.palette.model.OutputGenerator
 import org.w3c.dom.url.URLSearchParams
+import org.w3c.files.Blob
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -32,5 +36,18 @@ fun URLSearchParams.toMap(): Map<String, String?> {
             TODO("Not yet implemented")
         }
 
+    }
+}
+
+fun OutputGenerator.Companion.DownloadObject.startDownload() {
+    if (zipFilename == null) {
+        val blob = Blob(arrayOf(content.encodeToByteArray()))
+        saveAs(blob, filename)
+    } else {
+        val zip = JSZip()
+        zip.file(filename, content)
+        zip.generateAsync(mapOf("type" to "blob").toJson()).then {
+            saveAs(it, zipFilename)
+        }
     }
 }

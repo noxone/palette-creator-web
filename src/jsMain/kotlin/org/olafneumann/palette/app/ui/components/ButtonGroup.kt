@@ -34,6 +34,7 @@ enum class ButtonType {
 
 data class Button(
     val type: ButtonType = ButtonType.Button,
+    val customClass: String = "",
     val id: String = IdGenerator.next,
     val icon: (RenderContext.() -> Unit)? = null,
     val text: String? = null,
@@ -55,7 +56,7 @@ private fun RenderContext.button(button: Button, classes: List<String>) =
     button {
         type("button")
         id(button.id)
-        classList(classes)
+        classList(classes + listOf(button.customClass))
         button.value?.renderText(into = this)
         button.icon?.let { icon ->
             span { icon() }
@@ -101,7 +102,7 @@ private fun RenderContext.button(button: Button, classes: List<String>) =
 private fun RenderContext.colorPicker(button: Button, classes: List<String>) =
     label {
         val realClasses = classes + listOf("z-20 cursor-pointer")//relative
-        classList(realClasses)
+        classList(realClasses + listOf(button.customClass))
 
         inlineStyle("position:relative;")
         `for`(button.id)
