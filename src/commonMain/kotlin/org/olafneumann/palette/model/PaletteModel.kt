@@ -95,6 +95,16 @@ data class PaletteModel(
     fun removeAccentColor(color: Color) =
         copy(accentColors = accentColors - color, accentNames = accentNames - accentNames[accentColors.indexOf(color)])
 
+    fun removeAccentColor(name: String) =
+        removeAccentColor(accentColors[accentNames.indexOf(name)])
+
+    fun renameAccentColor(oldName: String, newName: String): PaletteModel {
+        val names = accentNames.toMutableList()
+        val index = names.indexOf(oldName)
+        names[index] = newName
+        return copy(accentNames = names)
+    }
+
     // TODO: Add check that neutral color is really neutral
     // TODO: Add check that accent colors are different enough
 

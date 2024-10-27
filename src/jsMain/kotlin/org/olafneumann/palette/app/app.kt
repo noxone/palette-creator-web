@@ -132,8 +132,15 @@ fun main() {
         val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.addRandomAccentColor()
         }
-        val removeAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
-            model.removeAccentColor(color)
+        val removeAccentColor: Handler<String> = handle { model: PaletteModel, name ->
+            if (window.confirm("Do you really want to delete accent color '$name'?"))
+                model.removeAccentColor(name)
+            else
+                model
+        }
+        val renameAccentColor: Handler<String> = handle { model: PaletteModel, oldName ->
+            val newName = window.prompt(message = "Please choose a new name for the accent color:", default = oldName)
+            newName?.let { model.renameAccentColor(oldName, it) } ?: model
         }
         val updateShadeCount: Handler<Int> =
             handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
@@ -374,7 +381,7 @@ fun main() {
                                         button(
                                             Button(
                                                 icon = { iconEdit() },
-                                                //customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
+                                                customCode = { clicks.map { shadeList.name } handledBy modelStore.renameAccentColor }
                                             )
                                         )
                                     }
@@ -393,7 +400,7 @@ fun main() {
                                         className("col-span-1")
                                         button(Button(
                                             icon = { iconTrash() },
-                                            customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
+                                            customCode = { clicks.map { shadeList.name } handledBy modelStore.removeAccentColor }
                                         ))
                                     }
                                 }
@@ -446,9 +453,7 @@ fun main() {
                             )
                         }
                         div("col-span-10 place-self-center w-full") {
-                            span {
-                                +generator.description
-                            }
+                            +generator.description
                         }
                     }
                 }

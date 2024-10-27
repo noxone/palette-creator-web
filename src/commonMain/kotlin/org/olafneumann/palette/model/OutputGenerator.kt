@@ -1,8 +1,6 @@
 package org.olafneumann.palette.model
 
 import org.olafneumann.palette.colors.ShadeList
-import kotlin.reflect.KClass
-import kotlin.reflect.createInstance
 
 interface OutputGenerator {
     val title: String
@@ -14,6 +12,7 @@ interface OutputGenerator {
             get() = "Hex values"
         override val description: String
             get() = "Text file containing all RGB values for the generated colors."
+
         override fun generateOutput(model: PaletteModel): DownloadObject =
             DownloadObject(
                 filename = "shades.txt",
@@ -34,6 +33,7 @@ interface OutputGenerator {
         override val description: String
             get() = "CSS file containing several classes for each color to be used as background color, text color " +
                     "or border color."
+
         override fun generateOutput(model: PaletteModel): DownloadObject =
             DownloadObject(
                 filename = "shades.css",

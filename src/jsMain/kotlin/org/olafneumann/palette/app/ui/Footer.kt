@@ -6,11 +6,11 @@ import dev.fritz2.core.src
 import dev.fritz2.core.target
 
 fun RenderContext.footer() =
-    footer(/*"bg-white dark:bg-gray-900"*/) {
+    footer {
         div("mx-auto w-full p-4 py-6 lg:py-8") {
             div("md:flex md:justify-between") {
                 div("mb-6 md:mb-0") {
-                    p("self-center text-2xl font-semibold whitespace-nowrap dark:text-white") {
+                    p("self-center text-2xl font-semibold whitespace-nowrap") {
                         +"Shade Generator"
                     }
                     p {
@@ -20,7 +20,7 @@ fun RenderContext.footer() =
                 }
                 div("grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3") {
                     div {
-                        h2("mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white") {
+                        h2("mb-6 text-sm font-semibold uppercase") {
                             +"Useful links"
                         }
                         ul("text-gray-500 dark:text-gray-400 font-medium") {
@@ -48,7 +48,7 @@ fun RenderContext.footer() =
                         }
                     }
                     div {
-                        h2("mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white") {
+                        h2("mb-6 text-sm font-semibold uppercase") {
                             +"Built using"
                         }
                         ul("text-gray-500 dark:text-gray-400 font-medium") {
