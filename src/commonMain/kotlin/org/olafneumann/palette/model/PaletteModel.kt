@@ -120,7 +120,7 @@ data class PaletteModel(
         private const val PARAM_PRIMARY = "primary"
         private const val PARAM_NEUTRAL = "neutral"
         private const val PARAM_ACCENTS = "accents"
-        private const val PARAM_ACCENT_NAMES = "accentNames"
+        private const val PARAM_ACCENT_NAMES = "accent_names"
         private const val PARAM_ACCENT_SEED = "accent_seed"
         private const val PARAM_ENFORCE_COLOR_IN_SHADE = "enforce_color"
         private const val PARAM_SHADE_COUNT = "count"

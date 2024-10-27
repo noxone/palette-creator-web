@@ -19,20 +19,15 @@ Go to [Shades](https://shades.olafneumann.org/) and try it online.
 
 The page supports several search parameters to change the initial state of the options:
 
-``still to be documented``
-<!--
-- ``sampleText`` changes the initial sample text of the regex generator
-- ``flags`` changes the flags used to generate the language snippets. Any combination of the following characters are allowed:
-    - ``i`` case insensitive
-    - ``s`` dot matches line breaks
-    - ``m`` multiline
-    - ``P`` this controls the "Generate Only Patterns" check box
-    - ``W`` this controls the "Match Whole Line" check box
-    - ``L`` this controls the "Generate Lower Case" check box
-- ``selection`` controls the matches that have been selected by the user
- -->
+- ``primary``: hex value of the primary color
+- ``neutral``: hex value of the neutral color
+- ``accents``: comma separated list of all accent colors
+- ``accent_names``: comma separated list of the names of accent colors. If the length does not match with the parameter above, this parameter will be ignored and default names will be generated.
+- ``accent_seed``: counter for already generated accent colors
+- ``enforce_color``: `true` if the selected primary (and accent) color shall be part of the generated list of shades. If `false`, the selected primary color is basically the starting point for all other computations.
+- ``count``: The number of shades to generate
 
-Example: [https://shades.olafneumann.org/](https://shades.olafneumann.org/)
+<!-- TODO: Example: [https://shades.olafneumann.org/](https://shades.olafneumann.org/)-->
 
 ### Docker
 
