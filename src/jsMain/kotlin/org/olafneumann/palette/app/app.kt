@@ -15,12 +15,11 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.npm.FloaterEventType
-import org.olafneumann.palette.app.npm.JSZip
 import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
-import org.olafneumann.palette.app.npm.saveAs
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
+import org.olafneumann.palette.app.ui.components.boxy
 import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
 import org.olafneumann.palette.app.ui.components.checkbox
@@ -31,15 +30,16 @@ import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.ui.components.warningToast
+import org.olafneumann.palette.app.ui.footer
 import org.olafneumann.palette.app.utils.copyToClipboard
+import org.olafneumann.palette.app.utils.startDownload
 import org.olafneumann.palette.app.utils.toCurrentWindowLocation
-import org.olafneumann.palette.app.utils.toJson
 import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.fittingFontColor
+import org.olafneumann.palette.model.OutputGenerator
 import org.olafneumann.palette.model.PaletteModel
-import org.olafneumann.palette.model.generateCss
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
@@ -56,7 +56,6 @@ fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
 
 @Suppress("LongMethod")
 fun main() {
-
     val colorCountStore = object : RootStore<Int>(min(1536, window.innerWidth) / COLOR_COUNT_DIV, job = Job()) {
         val setSize: Handler<Event> = handle { _: Int, _: Event ->
             val element = document.getElementById(HEADER_ID)
@@ -85,14 +84,20 @@ fun main() {
 
         private fun checkAccentColorReset(model: PaletteModel): Boolean {
             val hasAccentColorsDefined = model.namedAccentColors.isNotEmpty()
-            val resetAccentColors = hasAccentColorsDefined && window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")
+            val resetAccentColors =
+                hasAccentColorsDefined && window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")
             console.log(hasAccentColorsDefined, resetAccentColors)
             return resetAccentColors
         }
 
         val setPrimaryColor: Handler<String> = handle { model: PaletteModel, hex: String ->
             Color.hex(hex)
-                ?.let { color -> model.setPrimaryColor(primaryColor = color, resetAccentColors = checkAccentColorReset(model)) }
+                ?.let { color ->
+                    model.setPrimaryColor(
+                        primaryColor = color,
+                        resetAccentColors = checkAccentColorReset(model)
+                    )
+                }
                 ?: model
         }
         val setPrimaryColorEnforcedInShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
@@ -127,14 +132,21 @@ fun main() {
         val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.addRandomAccentColor()
         }
-        val removeAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
-            model.removeAccentColor(color)
+        val removeAccentColor: Handler<String> = handle { model: PaletteModel, name ->
+            if (window.confirm("Do you really want to delete accent color '$name'?"))
+                model.removeAccentColor(name)
+            else
+                model
+        }
+        val renameAccentColor: Handler<String> = handle { model: PaletteModel, oldName ->
+            val newName = window.prompt(message = "Please choose a new name for the accent color:", default = oldName)
+            newName?.let { model.renameAccentColor(oldName, it) } ?: model
         }
         val updateShadeCount: Handler<Int> =
             handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
 
-        val downloadCSS: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
-            downloadFile(filename = "shades.css", content = model.generateCss(), zipFilename = "shades.zip")
+        val downloadOutput: Handler<OutputGenerator> = handle { model, generator ->
+            generator.generateOutput(model).startDownload()
             model
         }
 
@@ -142,30 +154,22 @@ fun main() {
             copyToClipboard(color.hex())
             model
         }
-
-        private fun downloadFile(filename: String, content: String, zipFilename: String) {
-            val zip = JSZip()
-            zip.file(filename, content)
-            zip.generateAsync(mapOf("type" to "blob").toJson()).then {
-                saveAs(it, zipFilename)
-            }
-        }
     }
 
     render(selector = "#target") {
         Window.resizes handledBy colorCountStore.setSize
 
-        div {
-            className("md:container md:mx-auto text-slate-900")
-
-
-            div {
+        div("md:container md:mx-auto text-slate-900") {
+            div("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center") {
+                // TODO: use color 57A0CC
                 id(HEADER_ID)
-                className("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center")
-                div {
-                    className("on-title-font text-5xl sm:text-6xl md:text-7xl py-4 sm:py-6")
-
-                    +"Palette Creator"
+                div("py-4 sm:py-6") {
+                    div("on-title-font text-5xl sm:text-6xl md:text-7xl") {
+                        +"Shade Generator"
+                    }
+                    p {
+                        +"Generate shades and color palettes for your coding projects."
+                    }
                 }
                 colorCountStore.data.render { colorCount ->
                     colorList(
@@ -180,17 +184,6 @@ fun main() {
                         })
                 }
             }
-            div {
-                className("mx-7 p-5 bg-orange-300 rounded-b-xl shadow-xl")
-                div {
-                    p {
-                        +"You want to create a color palette for your app or website. Then this might be a good starting point for you. "
-                    }
-                    p {
-                        +"In a few steps we will create a nice color palette for you."
-                    }
-                }
-            }
 
             section(
                 number = 1,
@@ -198,12 +191,8 @@ fun main() {
                 instruction = "Please pick or enter the main color you want to use for your application.",
                 explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
             ) {
-                div {
-                    className("grid grid-cols-12")
-
-                    div {
-                        className("col-span-8")
-
+                div("grid grid-cols-12") {
+                    div("col-span-8") {
                         buttonGroup(
                             Button(
                                 type = ButtonType.ColorPicker,
@@ -226,8 +215,7 @@ fun main() {
                         }
                     }
 
-                    div {
-                        className("col-span-4 w-full h-full")
+                    div("col-span-4 w-full h-full") {
                         modelStore.data.render(into = this) {
                             colorBox(
                                 color = it.primaryColor,
@@ -390,10 +378,12 @@ fun main() {
                                         className("col-span-2")
                                         +shadeList.name
 
-                                        button(Button(
-                                            icon = { iconEdit() },
-                                            //customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
-                                        ))
+                                        button(
+                                            Button(
+                                                icon = { iconEdit() },
+                                                customCode = { clicks.map { shadeList.name } handledBy modelStore.renameAccentColor }
+                                            )
+                                        )
                                     }
                                     div {
                                         className("col-span-9 border rounded-lg p-2 shadow-inner")
@@ -410,7 +400,7 @@ fun main() {
                                         className("col-span-1")
                                         button(Button(
                                             icon = { iconTrash() },
-                                            customCode = { clicks.map { shadeList.baseColor } handledBy modelStore.removeAccentColor }
+                                            customCode = { clicks.map { shadeList.name } handledBy modelStore.removeAccentColor }
                                         ))
                                     }
                                 }
@@ -450,15 +440,30 @@ fun main() {
                 number = 5,
                 title = "Download",
             ) {
-                button(
-                    Button(
-                        icon = { iconDownload() },
-                        text = "CSS",
-                        clickHandler = modelStore.downloadCSS
-                    )
-                )
+                div("grid grid-cols-12 gap-2") {
+                    for (generator in OutputGenerator.allGenerators) {
+                        div("col-span-2") {
+                            button(
+                                Button(
+                                    customClass = "w-full",
+                                    icon = { iconDownload() },
+                                    text = generator.title,
+                                    customCode = { clicks.map { generator } handledBy modelStore.downloadOutput }
+                                )
+                            )
+                        }
+                        div("col-span-10 place-self-center w-full") {
+                            +generator.description
+                        }
+                    }
+                }
+            }
+
+            boxy(additionalClasses = "bg-slate-100") {
+                footer()
             }
         }
+
+        // footer()
     }
 }
-
