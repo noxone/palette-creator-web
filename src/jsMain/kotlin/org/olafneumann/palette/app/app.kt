@@ -19,6 +19,7 @@ import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
+import org.olafneumann.palette.app.ui.components.boxy
 import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
 import org.olafneumann.palette.app.ui.components.checkbox
@@ -29,6 +30,7 @@ import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.ui.components.warningToast
+import org.olafneumann.palette.app.ui.footer
 import org.olafneumann.palette.app.utils.copyToClipboard
 import org.olafneumann.palette.app.utils.startDownload
 import org.olafneumann.palette.app.utils.toCurrentWindowLocation
@@ -450,6 +452,10 @@ fun main() {
                         }
                     }
                 }
+            }
+
+            boxy(additionalClasses = "bg-slate-100") {
+                footer()
             }
         }
 

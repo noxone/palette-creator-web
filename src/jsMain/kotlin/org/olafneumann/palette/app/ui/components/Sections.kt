@@ -41,9 +41,9 @@ fun RenderContext.section(
         }
     }
 
-private fun RenderContext.boxy(content: HtmlTag<HTMLDivElement>.() -> Unit) =
+fun RenderContext.boxy(additionalClasses: String = "bg-slate-50 grid grid-cols-12", content: HtmlTag<HTMLDivElement>.() -> Unit) =
     div {
-        className("my-4 p-4 bg-slate-50 md:rounded-xl shadow-xl grid grid-cols-12")
+        classList(listOf("my-4 p-4 md:rounded-xl shadow-xl", additionalClasses))
         content()
     }
 
