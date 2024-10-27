@@ -18,7 +18,7 @@ interface OutputGenerator {
             DownloadObject(
                 filename = "shades.txt",
                 content = model.getShadeLists()
-                    .joinToString { it.generateRgbDescription() }
+                    .joinToString(separator = "\n") { it.generateRgbDescription() }
             )
 
 
