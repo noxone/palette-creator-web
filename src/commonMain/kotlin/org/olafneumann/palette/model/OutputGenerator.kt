@@ -54,7 +54,7 @@ interface OutputGenerator {
 
         private fun ShadeList.generateCss(prefix: String, propertyName: String): List<String> {
             val list = shadedColors
-                .map { ".$prefix-$name-${(it.shade * 1000).toInt()} {\n\t$propertyName: ${it.color.hex()}\n}" }
+                .map { ".$prefix-$name-${(it.shade * 1000).toInt()} {\n\t$propertyName: ${it.color.hex()};\n}" }
             return list
         }
     }
