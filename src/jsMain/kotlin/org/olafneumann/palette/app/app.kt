@@ -219,17 +219,14 @@ fun main() {
                     }
                 }
 
-                div {
-                    className("border-t col-span-12 mt-3 pt-3")
+                div("border-t col-span-12 mt-3 pt-3") {
                     p {
                         +"The currently selected color would bring the first set of nice shades for your palette:"
                     }
-                    div {
+                    div("border rounded-lg p-2 mt-2 shadow-inner") {
+                        inlineStyle("max-width:46rem;")
                         modelStore.data.map { it.primaryColorShadeList.shadedColors }
                             .render(into = this) { colors ->
-                                className("border rounded-lg p-2 mt-2 shadow-inner")
-                                inlineStyle("max-width:46rem;")
-
                                 colorList(
                                     width = 2.5,
                                     height = 2.5,
@@ -250,11 +247,8 @@ fun main() {
                     |There is no real science in choosing the neutral color. It should just fit to your primary color.
                 """.trimMargin(),
         ) {
-            div {
-                className("grid grid-cols-12")
-                div {
-                    className("col-span-8")
-
+            div("grid grid-cols-12") {
+                div("col-span-8") {
                     buttonGroup(
                         Button(text = "Derived from primary", clickHandler = modelStore.deriveNeutralColor),
                         Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
@@ -267,9 +261,7 @@ fun main() {
                     }
                 }
 
-                div {
-                    className("col-span-4 w-full h-full")
-
+                div("col-span-4 w-full h-full") {
                     modelStore.data.render(into = this) {
                         colorBox(
                             color = it.neutralColor,
@@ -278,17 +270,14 @@ fun main() {
                     }
                 }
 
-                div {
-                    className("border-t col-span-12 mt-3 pt-3")
+                div("border-t col-span-12 mt-3 pt-3") {
                     p {
                         +"The neutral shades would look like this:"
                     }
-                    div {
+                    div("border rounded-lg p-2 mt-2 shadow-inner") {
+                        inlineStyle("max-width:46rem;")
                         modelStore.data.map { it.neutralColorShadeList.shadedColors }
                             .render(into = this) { colors ->
-                                className("border rounded-lg p-2 mt-2 shadow-inner")
-                                inlineStyle("max-width:46rem;")
-
                                 colorList(
                                     width = 2.5,
                                     height = 2.5,
@@ -308,20 +297,15 @@ fun main() {
             explanation = """In order to highlight something you probably don't want to use your primary color. So add one or more accent colors.
                     |Be aware that too many color will also not do the trick ;)""".trimMargin(),
         ) {
-            div {
-                className("grid grid-cols-12")
-
-                div {
-                    className("col-span-12")
-
+            div("grid grid-cols-12") {
+                div("col-span-12") {
                     buttonGroup(
                         Button(
                             text = "Derived from primary color",
                             floaterElement = {
                                 modelStore.data.map { it.proposedAccentColors }
                                     .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
-                                        div {
-                                            className("w-full h-12 p-1")
+                                        div("w-full h-12 p-1") {
                                             colorBox(
                                                 color = color.color,
                                                 textColor = color.color.fittingFontColor(
@@ -381,10 +365,8 @@ fun main() {
                                         )
                                     }
                                 }
-                                div {
-                                    className("col-span-9 border rounded-lg p-2 shadow-inner")
+                                div("col-span-9 border rounded-lg p-2 shadow-inner") {
                                     inlineStyle("max-width:46rem;")
-
                                     colorList(
                                         width = 2.5,
                                         height = 2.5,
@@ -424,13 +406,11 @@ fun main() {
                     +"Shade count"
                 }
                 div("col-span-4 flex justify-between gap-4") {
-                    label {
-                        className("block mb-2 text-sm text-gray-900 dark:text-white")
+                    label("block mb-2 text-sm text-gray-900") {
                         `for`("shade-count")
                         modelStore.data.map { it.shadeCount }.renderText(into = this)
                     }
-                    input {
-                        className("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 place-self-center")
+                    input("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer place-self-center") {
                         id("shade-count")
                         type("range")
                         min(SHADES_MIN.toString())
