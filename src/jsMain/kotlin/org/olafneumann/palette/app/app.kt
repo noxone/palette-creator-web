@@ -40,6 +40,7 @@ import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.fittingFontColor
 import org.olafneumann.palette.model.OutputGenerator
 import org.olafneumann.palette.model.PaletteModel
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
@@ -156,320 +157,316 @@ fun main() {
         }
     }
 
-    render(selector = "#target") {
+    render(selector = "#on_main") {
         Window.resizes handledBy colorCountStore.setSize
 
-        div("md:container md:mx-auto text-slate-900") {
-            div("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center") {
-                // TODO: use color 57A0CC
-                id(HEADER_ID)
-                div("py-4 sm:py-6") {
-                    div("on-title-font text-5xl sm:text-6xl md:text-7xl") {
-                        +"Shade Generator"
-                    }
-                    p {
-                        +"Generate shades and color palettes for your coding projects."
-                    }
+        div("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center") {
+            // TODO: use color 57A0CC
+            id(HEADER_ID)
+            div("py-4 sm:py-6") {
+                div("on-title-font text-5xl sm:text-6xl md:text-7xl") {
+                    +"Shade Generator"
                 }
-                colorCountStore.data.render { colorCount ->
-                    colorList(
-                        width = 2.5,
-                        height = 2.8,
-                        colors = (0..<colorCount).map {
-                            Color.hsluv(
-                                h = 290.0 / colorCount * it,
-                                s = 0.1 + 0.85 / colorCount * it,
-                                l = 0.7
-                            )
-                        })
+                p {
+                    +"Generate shades and color palettes for your coding projects."
                 }
             }
-
-            section(
-                number = 1,
-                title = "Primary Color",
-                instruction = "Please pick or enter the main color you want to use for your application.",
-                explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
-            ) {
-                div("grid grid-cols-12") {
-                    div("col-span-8") {
-                        buttonGroup(
-                            Button(
-                                type = ButtonType.ColorPicker,
-                                text = "Color Picker",
-                                value = modelStore.data.map { it.primaryColor.hex() },
-                                textHandler = modelStore.setPrimaryColor
-                            ),
-                            // TODO: Button(text = "Enter hex RGB"),
-                            Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
+            colorCountStore.data.render { colorCount ->
+                colorList(
+                    width = 2.5,
+                    height = 2.8,
+                    colors = (0..<colorCount).map {
+                        Color.hsluv(
+                            h = 290.0 / colorCount * it,
+                            s = 0.1 + 0.85 / colorCount * it,
+                            l = 0.7
                         )
+                    })
+            }
+        }
 
-                        modelStore.data.map { it.isPrimaryColorSaturationHighEnough }.renderFalse {
-                            warningToast("The saturation of the main color is quite low. This might not be a problem, but we propose to use a color with some more saturation as primary color.")
-                        }
+        section(
+            number = 1,
+            title = "Primary Color",
+            instruction = "Please pick or enter the main color you want to use for your application.",
+            explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
+        ) {
+            div("grid grid-cols-12") {
+                div("col-span-8") {
+                    buttonGroup(
+                        Button(
+                            type = ButtonType.ColorPicker,
+                            text = "Color Picker",
+                            value = modelStore.data.map { it.primaryColor.hex() },
+                            textHandler = modelStore.setPrimaryColor
+                        ),
+                        // TODO: Button(text = "Enter hex RGB"),
+                        Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
+                    )
+
+                    modelStore.data.map { it.isPrimaryColorSaturationHighEnough }.renderFalse {
+                        warningToast("The saturation of the main color is quite low. This might not be a problem, but we propose to use a color with some more saturation as primary color.")
                     }
+                }
 
-                    div("col-span-4 w-full h-full") {
-                        modelStore.data.render(into = this) {
-                            colorBox(
-                                color = it.primaryColor,
-                                textColor = it.primaryColor.fittingFontColor(
-                                    light = it.primaryColorShadeList.lightestColor,
-                                    dark = it.primaryColorShadeList.darkestColor
-                                )
+                div("col-span-4 w-full h-full") {
+                    modelStore.data.render(into = this) {
+                        colorBox(
+                            color = it.primaryColor,
+                            textColor = it.primaryColor.fittingFontColor(
+                                light = it.primaryColorShadeList.lightestColor,
+                                dark = it.primaryColorShadeList.darkestColor
                             )
-                        }
+                        )
                     }
+                }
 
+                div {
+                    className("border-t col-span-12 mt-3 pt-3")
+                    p {
+                        +"The currently selected color would bring the first set of nice shades for your palette:"
+                    }
                     div {
-                        className("border-t col-span-12 mt-3 pt-3")
-                        p {
-                            +"The currently selected color would bring the first set of nice shades for your palette:"
-                        }
-                        div {
-                            modelStore.data.map { it.primaryColorShadeList.shadedColors }
-                                .render(into = this) { colors ->
-                                    className("border rounded-lg p-2 mt-2 shadow-inner")
-                                    inlineStyle("max-width:46rem;")
+                        modelStore.data.map { it.primaryColorShadeList.shadedColors }
+                            .render(into = this) { colors ->
+                                className("border rounded-lg p-2 mt-2 shadow-inner")
+                                inlineStyle("max-width:46rem;")
 
-                                    colorList(
-                                        width = 2.5,
-                                        height = 2.5,
-                                        colors = colors,
-                                        handler = modelStore.copyColorToClipboard
-                                    )
-                                }
-                        }
+                                colorList(
+                                    width = 2.5,
+                                    height = 2.5,
+                                    colors = colors,
+                                    handler = modelStore.copyColorToClipboard
+                                )
+                            }
                     }
                 }
             }
+        }
 
-            section(
-                number = 2,
-                title = "Neutral Color",
-                instruction = "Choose a neutral color. Shades of this might be used for backgrounds, texts or borders.",
-                explanation = """True black or white often looks strange to the eye, so we should go with some other very dark or light colors.
+        section(
+            number = 2,
+            title = "Neutral Color",
+            instruction = "Choose a neutral color. Shades of this might be used for backgrounds, texts or borders.",
+            explanation = """True black or white often looks strange to the eye, so we should go with some other very dark or light colors.
                     |There is no real science in choosing the neutral color. It should just fit to your primary color.
                 """.trimMargin(),
-            ) {
+        ) {
+            div {
+                className("grid grid-cols-12")
                 div {
-                    className("grid grid-cols-12")
-                    div {
-                        className("col-span-8")
+                    className("col-span-8")
 
-                        buttonGroup(
-                            Button(text = "Derived from primary", clickHandler = modelStore.deriveNeutralColor),
-                            Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
-                            Button(text = "Random cold", clickHandler = modelStore.randomizeColdNeutralColor),
-                            Button(text = "Completely random", clickHandler = modelStore.randomizeNeutralColor),
+                    buttonGroup(
+                        Button(text = "Derived from primary", clickHandler = modelStore.deriveNeutralColor),
+                        Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
+                        Button(text = "Random cold", clickHandler = modelStore.randomizeColdNeutralColor),
+                        Button(text = "Completely random", clickHandler = modelStore.randomizeNeutralColor),
+                    )
+
+                    modelStore.data.map { it.isNeutralColorSaturationLowEnough }.renderFalse {
+                        warningToast("The neutral color has a quite high saturation. We would suggest to choose a color with a lower saturation.")
+                    }
+                }
+
+                div {
+                    className("col-span-4 w-full h-full")
+
+                    modelStore.data.render(into = this) {
+                        colorBox(
+                            color = it.neutralColor,
+                            textColor = it.neutralColorShadeList.lightestColor
                         )
-
-                        modelStore.data.map { it.isNeutralColorSaturationLowEnough }.renderFalse {
-                            warningToast("The neutral color has a quite high saturation. We would suggest to choose a color with a lower saturation.")
-                        }
                     }
+                }
 
-                    div {
-                        className("col-span-4 w-full h-full")
-
-                        modelStore.data.render(into = this) {
-                            colorBox(
-                                color = it.neutralColor,
-                                textColor = it.neutralColorShadeList.lightestColor
-                            )
-                        }
+                div {
+                    className("border-t col-span-12 mt-3 pt-3")
+                    p {
+                        +"The neutral shades would look like this:"
                     }
-
                     div {
-                        className("border-t col-span-12 mt-3 pt-3")
-                        p {
-                            +"The neutral shades would look like this:"
-                        }
-                        div {
-                            modelStore.data.map { it.neutralColorShadeList.shadedColors }
-                                .render(into = this) { colors ->
-                                    className("border rounded-lg p-2 mt-2 shadow-inner")
-                                    inlineStyle("max-width:46rem;")
+                        modelStore.data.map { it.neutralColorShadeList.shadedColors }
+                            .render(into = this) { colors ->
+                                className("border rounded-lg p-2 mt-2 shadow-inner")
+                                inlineStyle("max-width:46rem;")
 
-                                    colorList(
-                                        width = 2.5,
-                                        height = 2.5,
-                                        colors = colors,
-                                        handler = modelStore.copyColorToClipboard
-                                    )
-                                }
-                        }
+                                colorList(
+                                    width = 2.5,
+                                    height = 2.5,
+                                    colors = colors,
+                                    handler = modelStore.copyColorToClipboard
+                                )
+                            }
                     }
                 }
             }
+        }
 
-            section(
-                number = 3,
-                title = "Accent Colors",
-                instruction = "If you need need to highlight something, select an accent color.",
-                explanation = """In order to highlight something you probably don't want to use your primary color. So add one or more accent colors.
+        section(
+            number = 3,
+            title = "Accent Colors",
+            instruction = "If you need need to highlight something, select an accent color.",
+            explanation = """In order to highlight something you probably don't want to use your primary color. So add one or more accent colors.
                     |Be aware that too many color will also not do the trick ;)""".trimMargin(),
-            ) {
+        ) {
+            div {
+                className("grid grid-cols-12")
+
                 div {
-                    className("grid grid-cols-12")
+                    className("col-span-12")
 
-                    div {
-                        className("col-span-12")
-
-                        buttonGroup(
-                            Button(
-                                text = "Derived from primary color",
-                                floaterElement = {
-                                    modelStore.data.map { it.proposedAccentColors }
-                                        .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
-                                            div {
-                                                className("w-full h-12 p-1")
-                                                colorBox(
-                                                    color = color.color,
-                                                    textColor = color.color.fittingFontColor(
-                                                        Color(1.0, 1.0, 1.0), // TODO: replace by better colors
-                                                        Color(0.0, 0.0, 0.0)
-                                                    ),
-                                                    textToRender = "${color.name}: {{hex}}",
-                                                    handler = modelStore.addAccentColor,
-                                                )
-                                            }
-                                        }
-                                },
-                                floaterOptions = Options(placement = Placement.BottomStart),
-                                floaterEvents = listOf(FloaterEventType.Click),
-                                floaterBlurOnOutsideClick = true,
-                            ),
-                            Button(
-                                text = "Add random accent color",
-                                clickHandler = modelStore.addRandomAccentColor,
-                            ),
-                            Button(
-                                type = ButtonType.ColorPicker,
-                                value = modelStore.data.map { it.proposedAccentColor.hex() },
-                                text = "Pick custom accent color",
-                                textHandler = modelStore.addAccentColorHex
-                            )
-                        )
-                    }
-
-                    div("border-t col-span-12 mt-3 pt-3 gap-4") {
-                        modelStore.data.map { it.namedAccentColors.isEmpty() }.render { isEmpty ->
-                            p {
-                                if (isEmpty) {
-                                    +"No accent colors added yet."
-                                } else {
-                                    +"The accent shades would look like this:"
-                                }
-                            }
-                        }
-                        modelStore.data.map { it.accentColorsShadeLists }
-                            .renderEach(idProvider = {
-                                "accent_color_${it.name}"
-                            }) { shadeList ->
-                                div("grid grid-cols-12 mt-2") {
-                                    div("col-span-2 group flex justify-between") {
-                                        div("place-self-center") {
-                                            +shadeList.name
-                                        }
-
-                                        div("place-self-center") {
-                                            button(
-                                                Button(
-                                                    customClass = "hidden group-hover:inline-block",
-                                                    icon = { iconEdit() },
-                                                    customCode = { clicks.map { shadeList.name } handledBy modelStore.renameAccentColor }
-                                                )
+                    buttonGroup(
+                        Button(
+                            text = "Derived from primary color",
+                            floaterElement = {
+                                modelStore.data.map { it.proposedAccentColors }
+                                    .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
+                                        div {
+                                            className("w-full h-12 p-1")
+                                            colorBox(
+                                                color = color.color,
+                                                textColor = color.color.fittingFontColor(
+                                                    Color(1.0, 1.0, 1.0), // TODO: replace by better colors
+                                                    Color(0.0, 0.0, 0.0)
+                                                ),
+                                                textToRender = "${color.name}: {{hex}}",
+                                                handler = modelStore.addAccentColor,
                                             )
                                         }
                                     }
-                                    div {
-                                        className("col-span-9 border rounded-lg p-2 shadow-inner")
-                                        inlineStyle("max-width:46rem;")
+                            },
+                            floaterOptions = Options(placement = Placement.BottomStart),
+                            floaterEvents = listOf(FloaterEventType.Click),
+                            floaterBlurOnOutsideClick = true,
+                        ),
+                        Button(
+                            text = "Add random accent color",
+                            clickHandler = modelStore.addRandomAccentColor,
+                        ),
+                        Button(
+                            type = ButtonType.ColorPicker,
+                            value = modelStore.data.map { it.proposedAccentColor.hex() },
+                            text = "Pick custom accent color",
+                            textHandler = modelStore.addAccentColorHex
+                        )
+                    )
+                }
 
-                                        colorList(
-                                            width = 2.5,
-                                            height = 2.5,
-                                            shadeList.shadedColors,
-                                            handler = modelStore.copyColorToClipboard
+                div("border-t col-span-12 mt-3 pt-3 gap-4") {
+                    modelStore.data.map { it.namedAccentColors.isEmpty() }.render { isEmpty ->
+                        p {
+                            if (isEmpty) {
+                                +"No accent colors added yet."
+                            } else {
+                                +"The accent shades would look like this:"
+                            }
+                        }
+                    }
+                    modelStore.data.map { it.accentColorsShadeLists }
+                        .renderEach(idProvider = {
+                            "accent_color_${it.name}_${it.shadedColors.size}"
+                        }) { shadeList ->
+                            div("grid grid-cols-12 mt-2 gap-4") {
+                                div("col-span-2 group flex justify-between") {
+                                    div("place-self-center") {
+                                        +shadeList.name
+                                    }
+
+                                    div("place-self-center") {
+                                        button(
+                                            Button(
+                                                customClass = "hidden group-hover:inline-block",
+                                                icon = { iconEdit() },
+                                                customCode = { clicks.map { shadeList.name } handledBy modelStore.renameAccentColor }
+                                            )
                                         )
                                     }
-                                    div("col-span-1 place-self-center") {
-                                        button(Button(
-                                            icon = { iconTrash() },
-                                            customCode = { clicks.map { shadeList.name } handledBy modelStore.removeAccentColor }
-                                        ))
-                                    }
+                                }
+                                div {
+                                    className("col-span-9 border rounded-lg p-2 shadow-inner")
+                                    inlineStyle("max-width:46rem;")
+
+                                    colorList(
+                                        width = 2.5,
+                                        height = 2.5,
+                                        shadeList.shadedColors,
+                                        handler = modelStore.copyColorToClipboard
+                                    )
+                                }
+                                div("col-span-1 place-self-center") {
+                                    button(Button(
+                                        icon = { iconTrash() },
+                                        customCode = { clicks.map { shadeList.name } handledBy modelStore.removeAccentColor }
+                                    ))
                                 }
                             }
+                        }
+                }
+            }
+        }
+
+        section(
+            number = 4,
+            title = "Options",
+        ) {
+            div("grid grid-cols-5 gap-4") {
+                div("col-span-1") {
+                    +"Include base color"
+                }
+                div("col-span-4") {
+                    checkbox(
+                        value = modelStore.data.map { it.enforcePrimaryColorInShades },
+                        handler = modelStore.setPrimaryColorEnforcedInShades,
+                        label = "Make sure, the primary color is part of the generated shades."
+                    )
+                }
+
+                div("col-span-1") {
+                    +"Shade count"
+                }
+                div("col-span-4 flex justify-between gap-4") {
+                    label {
+                        className("block mb-2 text-sm text-gray-900 dark:text-white")
+                        `for`("shade-count")
+                        modelStore.data.map { it.shadeCount }.renderText(into = this)
+                    }
+                    input {
+                        className("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 place-self-center")
+                        id("shade-count")
+                        type("range")
+                        min(SHADES_MIN.toString())
+                        max(SHADES_MAX.toString())
+                        value(modelStore.data.map { it.shadeCount.toString() })
+                        changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
                     }
                 }
             }
+        }
 
-            section(
-                number = 4,
-                title = "Options",
-            ) {
-                div("grid grid-cols-5 gap-4") {
-                    div("col-span-1") {
-                        +"Include base color"
-                    }
-                    div("col-span-4") {
-                        checkbox(
-                            value = modelStore.data.map { it.enforcePrimaryColorInShades },
-                            handler = modelStore.setPrimaryColorEnforcedInShades,
-                            label = "Make sure, the primary color is part of the generated shades."
+        section(
+            number = 5,
+            title = "Download",
+        ) {
+            div("grid grid-cols-12 gap-2") {
+                for (generator in OutputGenerator.allGenerators) {
+                    div("col-span-2") {
+                        button(
+                            Button(
+                                customClass = "w-full",
+                                icon = { iconDownload() },
+                                text = generator.title,
+                                customCode = { clicks.map { generator } handledBy modelStore.downloadOutput }
+                            )
                         )
                     }
-
-                    div("col-span-1") {
-                        +"Shade count"
-                    }
-                    div("col-span-4 flex justify-between gap-4") {
-                        label {
-                            className("block mb-2 text-sm text-gray-900 dark:text-white")
-                            `for`("shade-count")
-                            modelStore.data.map { it.shadeCount }.renderText(into = this)
-                        }
-                        input {
-                            className("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 place-self-center")
-                            id("shade-count")
-                            type("range")
-                            min(SHADES_MIN.toString())
-                            max(SHADES_MAX.toString())
-                            value(modelStore.data.map { it.shadeCount.toString() })
-                            changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
-                        }
+                    div("col-span-10 place-self-center w-full") {
+                        +generator.description
                     }
                 }
-            }
-
-            section(
-                number = 5,
-                title = "Download",
-            ) {
-                div("grid grid-cols-12 gap-2") {
-                    for (generator in OutputGenerator.allGenerators) {
-                        div("col-span-2") {
-                            button(
-                                Button(
-                                    customClass = "w-full",
-                                    icon = { iconDownload() },
-                                    text = generator.title,
-                                    customCode = { clicks.map { generator } handledBy modelStore.downloadOutput }
-                                )
-                            )
-                        }
-                        div("col-span-10 place-self-center w-full") {
-                            +generator.description
-                        }
-                    }
-                }
-            }
-
-            boxy(additionalClasses = "bg-slate-200") {
-                footer()
             }
         }
     }
+    (document.getElementById("on_footer") as? HTMLElement)
+        ?.style?.display = "block"
 }

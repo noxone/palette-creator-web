@@ -16,9 +16,84 @@
     REMOVE_LINE_FOR_PUBLISHING -->
 
 </head>
-<body class="bg-slate-100 font-light">
-<div id="target">
+<body class="bg-slate-100 font-light md:container md:mx-auto text-slate-900">
+<div id="on_main">
     Loading...
+</div>
+<div id="on_footer" class="mt-4 p-4 bg-slate-200 shadow-xl md:my-4 md:rounded-xl" style="display:none;">
+    <footer class="mx-auto w-full px-4 py-6">
+        <div class="grid grid-cols-8 gap-4">
+            <div class="col-span-8 lg:col-span-4 mb-4 lg:mb-0">
+                <p class="on-title-font self-center text-xl font-semibold whitespace-nowrap mb-2 lg:mb-3">Shade
+                    Generator</p>
+                <p>This projects aims at making it <i>really</i> easy for everybody to create a nice looking color
+                    shades that can be included in nearly any development project.</p>
+                <p>The idea is, to give a developer the possibility to use well fitting colors in a project.</p>
+            </div>
+            <div class="col-span-8 sm:col-span-4 lg:col-span-2">
+                <h2 class="on-title-font mb-3 lg:mb-2 font-semibold uppercase">Useful links</h2>
+                <ul class="text-gray-500 dark:text-gray-400 font-medium">
+                    <li class="mb-1">
+                        <a class="hover:underline"
+                           href="https://www.refactoringui.com/previews/building-your-color-palette" target="_blank">Refactoring
+                            UI</a>
+                    </li>
+                    <li class="mb-1">
+                        <a class="hover:underline" href="https://www.canva.com/colors/color-wheel/" target="_blank">Canvas
+                            Color Wheel</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="https://colorffy.com/color-scheme-generator" target="_blank">Colorffy
+                            Color scheme generator</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-span-8 sm:col-span-4 lg:col-span-2">
+                <h2 class="on-title-font mb-3 lg:mb-2 font-semibold uppercase">Built using</h2>
+                <ul class="text-gray-500 dark:text-gray-400 font-medium">
+                    <li class="mb-1">
+                        <a class="hover:underline " href="https://kotlinlang.org/" target="_blank">Kotlin</a>
+                    </li>
+                    <li class="mb-1">
+                        <a class="hover:underline" href="https://www.fritz2.dev" target="_blank">fritz2</a>
+                    </li>
+                    <li class="mb-1">
+                        <a class="hover:underline" href="https://tailwindcss.com" target="_blank">tailwindcss</a>
+                    </li>
+                    <li class="mb-1">
+                        <a class="hover:underline" href="https://github.com/eligrey/FileSaver.js" target="_blank">FileSaver</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4 border-gray-300 mx-auto dark:border-gray-700"/>
+        <div class="sm:flex sm:items-center sm:justify-between">
+            <span
+                    class="text-gray-500 sm:text-center dark:text-gray-400">© 2024
+                <a class="hover:underline" href="https://github.com/noxone/" target="_blank">Olaf Neumann</a>
+            </span>
+            <!-- REMOVE_LINE_FOR_PUBLISHING
+            <div class="mt-4 sm:mt-0">
+                <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fshades.olafneumann.org&amp;count_bg=%23373A3D&amp;title_bg=%236C757D&amp;icon=&amp;icon_color=%23E7E7E7&amp;title=hits&amp;edge_flat=false" alt="Counter">
+            </div>
+            REMOVE_LINE_FOR_PUBLISHING -->
+            <div class="flex mt-4 sm:justify-center sm:mt-0">
+                <a class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                   href="https://github.com/noxone/palette-creator-web" target="_blank">
+                    Github
+                    <span class="sr-only">Github link</span>
+                </a>
+                <a class="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5" href="http://olafneumann.org"
+                   target="_blank">
+                    Olaf Neumann
+                    <span class="sr-only">Website link</span>
+                </a>
+            </div>
+        </div>
+    </footer>
 </div>
 <script src="palette-creator.js"></script>
 </body>
