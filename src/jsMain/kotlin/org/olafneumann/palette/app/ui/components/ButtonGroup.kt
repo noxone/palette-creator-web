@@ -22,11 +22,9 @@ private val defaultButtonClasses = listOf(
     "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
     "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
     "dark:hover:text-white dark:hover:bg-gray-700",
-    "dark:focus:ring-blue-500 dark:focus:text-white"
+    "dark:focus:ring-blue-500 dark:focus:text-white",
+    "first:rounded-s-lg last:rounded-e-lg"
 )
-private val rounded = listOf("rounded-lg")
-private val roundedStart = listOf("rounded-s-lg")
-private val roundedEnd = listOf("rounded-e-lg")
 
 enum class ButtonType {
     Button, ColorPicker
@@ -49,14 +47,11 @@ data class Button(
     val customCode: (RenderContext.() -> Unit)? = null,
 )
 
-fun RenderContext.button(button: Button) =
-    button(button = button, classes = defaultButtonClasses + rounded)
-
-private fun RenderContext.button(button: Button, classes: List<String>) =
+fun RenderContext.button(button: Button, additionalClasses: List<String> = emptyList()) =
     button {
         type("button")
         id(button.id)
-        classList(classes + listOf(button.customClass))
+        classList(defaultButtonClasses + listOf(button.customClass) + additionalClasses)
         button.value?.renderText(into = this)
         button.icon?.let { icon ->
             span { icon() }
@@ -99,9 +94,9 @@ private fun RenderContext.button(button: Button, classes: List<String>) =
         }
     }
 
-private fun RenderContext.colorPicker(button: Button, classes: List<String>) =
+private fun RenderContext.colorPicker(button: Button, additionalClasses: List<String> = emptyList()) =
     label {
-        val realClasses = classes + listOf("z-20 cursor-pointer")//relative
+        val realClasses = defaultButtonClasses + listOf("z-20 cursor-pointer") + additionalClasses
         classList(realClasses + listOf(button.customClass))
 
         inlineStyle("position:relative;")
@@ -143,16 +138,10 @@ fun RenderContext.buttonGroup(buttons: Collection<Button>) =
         className("inline-flex rounded-md shadow-sm")
 
         for (button in buttons) {
-            val classes = when (button) {
-                buttons.first() -> defaultButtonClasses + roundedStart
-                buttons.last() -> defaultButtonClasses + roundedEnd
-                else -> defaultButtonClasses
-            }
-
             if (button.type == ButtonType.Button) {
-                button(button = button, classes = classes)
+                button(button = button)
             } else if (button.type == ButtonType.ColorPicker) {
-                colorPicker(button = button, classes = classes)
+                colorPicker(button = button)
             }
         }
     }

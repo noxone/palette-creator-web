@@ -41,11 +41,10 @@ fun URLSearchParams.toMap(): Map<String, String?> {
 
 fun OutputGenerator.Companion.DownloadObject.startDownload() {
     if (zipFilename == null) {
-        val blob = Blob(arrayOf(content.encodeToByteArray()))
         saveAs(blob, filename)
     } else {
         val zip = JSZip()
-        zip.file(filename, content)
+        zip.file(filename, blob)
         zip.generateAsync(mapOf("type" to "blob").toJson()).then {
             saveAs(it, zipFilename)
         }

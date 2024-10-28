@@ -7,6 +7,7 @@ import kotlin.js.Promise
 @JsNonModule
 external class JSZip {
     fun file(fileName: String, content: String)
+    fun file(fileName: String, content: Blob)
     fun folder(folderName: String): JSZip
     fun generateAsync(type: dynamic): Promise<Blob>
 }
