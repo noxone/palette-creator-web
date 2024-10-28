@@ -1,6 +1,7 @@
 package org.olafneumann.palette.model
 
 import org.olafneumann.palette.colors.ShadeList
+import org.w3c.files.Blob
 
 interface OutputGenerator {
     val title: String
@@ -14,7 +15,7 @@ interface OutputGenerator {
         override fun generateOutput(model: PaletteModel): DownloadObject =
             DownloadObject(
                 filename = "shades.txt",
-                content = model.getShadeLists()
+                stringContent = model.getShadeLists()
                     .joinToString(separator = "\n") { it.generateRgbDescription() }
             )
 
@@ -34,7 +35,7 @@ interface OutputGenerator {
         override fun generateOutput(model: PaletteModel): DownloadObject =
             DownloadObject(
                 filename = "shades.css",
-                content = model.getShadeLists()
+                stringContent = model.getShadeLists()
                     .flatMap { it.generateCss() }
                     .joinToString(separator = "\n") { it }
             )
@@ -64,7 +65,7 @@ interface OutputGenerator {
         override fun generateOutput(model: PaletteModel): DownloadObject =
             DownloadObject(
                 filename = "tailwind.shades.json",
-                content = "theme: {\n\tcolors: {\n${generateAllTailwindNumbers(model)}\n\t}\n}"
+                stringContent = "theme: {\n\tcolors: {\n${generateAllTailwindNumbers(model)}\n\t}\n}"
             )
 
         private fun generateAllTailwindNumbers(model: PaletteModel): String =
@@ -88,8 +89,16 @@ interface OutputGenerator {
         data class DownloadObject(
             val zipFilename: String? = null,
             val filename: String,
-            val content: String,
-        )
+            val blob: Blob,
+        ) {
+            constructor(filename: String, stringContent: String) : this(
+                filename = filename,
+                blob = stringContent.toBlob()
+            )
+        }
+
+        // TODO: Move reference to Blob to JS-part of code
+        private fun String.toBlob(): Blob = Blob(arrayOf(encodeToByteArray()))
     }
 }
 
