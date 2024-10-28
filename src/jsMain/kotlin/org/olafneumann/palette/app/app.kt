@@ -353,9 +353,9 @@ fun main() {
                         )
                     }
 
-                    div("border-t col-span-12 mt-3 pt-3") {
-                        p {
-                            modelStore.data.map { it.namedAccentColors.isEmpty() }.render { isEmpty ->
+                    div("border-t col-span-12 mt-3 pt-3 gap-4") {
+                        modelStore.data.map { it.namedAccentColors.isEmpty() }.render { isEmpty ->
+                            p {
                                 if (isEmpty) {
                                     +"No accent colors added yet."
                                 } else {
@@ -367,7 +367,7 @@ fun main() {
                             .renderEach(idProvider = {
                                 "accent_color_${it.name}"
                             }) { shadeList ->
-                                div("grid grid-cols-12") {
+                                div("grid grid-cols-12 mt-2") {
                                     div("col-span-2 group flex justify-between") {
                                         div("place-self-center") {
                                             +shadeList.name
@@ -394,8 +394,7 @@ fun main() {
                                             handler = modelStore.copyColorToClipboard
                                         )
                                     }
-                                    div {
-                                        className("col-span-1")
+                                    div("col-span-1 place-self-center") {
                                         button(Button(
                                             icon = { iconTrash() },
                                             customCode = { clicks.map { shadeList.name } handledBy modelStore.removeAccentColor }
@@ -472,7 +471,5 @@ fun main() {
                 footer()
             }
         }
-
-        // footer()
     }
 }

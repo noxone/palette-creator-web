@@ -2,6 +2,7 @@ package org.olafneumann.palette.colors
 
 import org.olafneumann.palette.colorful.Color
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 data class ShadeList(
     val name: String,
@@ -82,14 +83,16 @@ data class ShadeList(
 
         private fun createShades(forColor: Color, values: List<Double>): List<ShadedColor> {
             val hsluv = forColor.hsluv()
-            return values.map { ShadedColor(color = Color.hsluv(h = hsluv.h, s = hsluv.s, l = it), shade = it) }
+            return values.map { ShadedColor(color = Color.hsluv(h = hsluv.h, s = hsluv.s, l = it), shade = 1.0 - it) }
         }
     }
 
     data class ShadedColor(
         val color: Color,
         val shade: Double,
-    )
+    ) {
+        val intShade = (shade * 1000).roundToInt()
+    }
 }
 
 

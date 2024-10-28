@@ -53,7 +53,7 @@ private const val DELTA: Double = 1.0 / 255.0
 private val D65: WhiteReference = WhiteReference(x = 0.95047, y = 1.00000, z = 1.08883)
 
 // And another one.
-@Suppress("Unused")
+@Suppress("UnusedPrivateProperty", "Unused")
 private val D50: WhiteReference = WhiteReference(x = 0.96422, y = 1.00000, z = 0.82521)
 
 private var hSLuvD65: WhiteReference = WhiteReference(x = 0.95045592705167, y = 1.0, z = 1.089057750759878)
