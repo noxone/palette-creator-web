@@ -189,42 +189,47 @@ fun main() {
             instruction = "Please pick or enter the main color you want to use for your application.",
             explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
         ) {
-            div("grid grid-cols-12") {
-                div("col-span-8") {
-                    buttonGroup(
-                        Button(
-                            type = ButtonType.ColorPicker,
-                            text = "Color Picker",
-                            value = modelStore.data.map { it.primaryColor.hex() },
-                            textHandler = modelStore.setPrimaryColor
-                        ),
-                        // TODO: Button(text = "Enter hex RGB"),
-                        Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
-                    )
-
-                    modelStore.data.map { it.isPrimaryColorSaturationHighEnough }.renderFalse {
-                        warningToast("The saturation of the main color is quite low. This might not be a problem, but we propose to use a color with some more saturation as primary color.")
+            div("grid grid-cols-12 gap-4") {
+                h2("col-span-full on-title-font font-semibold text-3xl antialiased") { +"Primary Color" }
+                div("col-span-6 *:mb-3") {
+                    p { +"Please pick or enter the main color you want to use for your application." }
+                    div("text-sm text-slate-500") {
+                        p { +"This is the main color for your app or website. It will be the most recognizable color in your software. Use this color for all important content." }
                     }
-                }
 
-                div("col-span-4 w-full h-full") {
-                    modelStore.data.render(into = this) {
-                        colorBox(
-                            color = it.primaryColor,
-                            textColor = it.primaryColor.fittingFontColor(
-                                light = it.primaryColorShadeList.lightestColor,
-                                dark = it.primaryColorShadeList.darkestColor
-                            )
+                    div("border rounded-xl p-3 shadow-inner bg-slate-100") {
+                        p("text-sm mx-1 mb-1") { +"Possible actions:" }
+                        buttonGroup(
+                            Button(
+                                type = ButtonType.ColorPicker,
+                                text = "Color Picker",
+                                value = modelStore.data.map { it.primaryColor.hex() },
+                                textHandler = modelStore.setPrimaryColor
+                            ),
+                            // TODO: Button(text = "Enter hex RGB"),
+                            Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
                         )
+
+                        modelStore.data.map { it.isPrimaryColorSaturationHighEnough }.renderFalse {
+                            warningToast("The saturation of the main color is quite low. This might not be a problem, but we propose to use a color with some more saturation as primary color.")
+                        }
                     }
                 }
 
-                div("border-t col-span-12 mt-3 pt-3") {
-                    p {
-                        +"The currently selected color would bring the first set of nice shades for your palette:"
+                div("col-span-6") {
+                    div("w-full h-32") {
+                        modelStore.data.render(into = this) {
+                            colorBox(
+                                color = it.primaryColor,
+                                textColor = it.primaryColor.fittingFontColor(
+                                    light = it.primaryColorShadeList.lightestColor,
+                                    dark = it.primaryColorShadeList.darkestColor
+                                )
+                            )
+                        }
                     }
-                    div("border rounded-lg p-2 mt-2 shadow-inner") {
-                        inlineStyle("max-width:46rem;")
+
+                    div("pt-3") {
                         modelStore.data.map { it.primaryColorShadeList.shadedColors }
                             .render(into = this) { colors ->
                                 colorList(
@@ -235,6 +240,7 @@ fun main() {
                                 )
                             }
                     }
+
                 }
             }
         }
@@ -247,35 +253,41 @@ fun main() {
                     |There is no real science in choosing the neutral color. It should just fit to your primary color.
                 """.trimMargin(),
         ) {
-            div("grid grid-cols-12") {
-                div("col-span-8") {
-                    buttonGroup(
-                        Button(text = "Derived from primary", clickHandler = modelStore.deriveNeutralColor),
-                        Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
-                        Button(text = "Random cold", clickHandler = modelStore.randomizeColdNeutralColor),
-                        Button(text = "Completely random", clickHandler = modelStore.randomizeNeutralColor),
-                    )
-
-                    modelStore.data.map { it.isNeutralColorSaturationLowEnough }.renderFalse {
-                        warningToast("The neutral color has a quite high saturation. We would suggest to choose a color with a lower saturation.")
+            div("grid grid-cols-12 gap-4") {
+                h2("col-span-full on-title-font font-semibold text-3xl antialiased") { +"Neutral Color" }
+                div("col-span-6 *:mb-3") {
+                    p { +"Choose a neutral color. Shades of this might be used for backgrounds, texts or borders." }
+                    div("text-sm text-slate-500") {
+                        p { +"True black or white often looks strange to the eye, so we should go with some other very dark or light colors." }
+                        p { +"There is no real science in choosing the neutral color. It should just fit to your primary color." }
                     }
-                }
 
-                div("col-span-4 w-full h-full") {
-                    modelStore.data.render(into = this) {
-                        colorBox(
-                            color = it.neutralColor,
-                            textColor = it.neutralColorShadeList.lightestColor
+                    div("border rounded-xl p-3 shadow-inner bg-slate-100") {
+                        p("text-sm mx-1 mb-1") { +"Possible actions:" }
+                        buttonGroup(
+                            Button(text = "Derive from primary", clickHandler = modelStore.deriveNeutralColor),
+                            Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
+                            Button(text = "Random cold", clickHandler = modelStore.randomizeColdNeutralColor),
+                            Button(text = "Completely random", clickHandler = modelStore.randomizeNeutralColor),
                         )
+
+                        modelStore.data.map { it.isNeutralColorSaturationLowEnough }.renderFalse {
+                            warningToast("The neutral color has a quite high saturation. We would suggest to choose a color with a lower saturation.")
+                        }
                     }
                 }
 
-                div("border-t col-span-12 mt-3 pt-3") {
-                    p {
-                        +"The neutral shades would look like this:"
+                div("col-span-6") {
+                    div("w-full h-32") {
+                        modelStore.data.render(into = this) {
+                            colorBox(
+                                color = it.neutralColor,
+                                textColor = it.neutralColorShadeList.lightestColor
+                            )
+                        }
                     }
-                    div("border rounded-lg p-2 mt-2 shadow-inner") {
-                        inlineStyle("max-width:46rem;")
+
+                    div("pt-3") {
                         modelStore.data.map { it.neutralColorShadeList.shadedColors }
                             .render(into = this) { colors ->
                                 colorList(
@@ -297,45 +309,55 @@ fun main() {
             explanation = """In order to highlight something you probably don't want to use your primary color. So add one or more accent colors.
                     |Be aware that too many color will also not do the trick ;)""".trimMargin(),
         ) {
-            div("grid grid-cols-12") {
-                div("col-span-12") {
-                    buttonGroup(
-                        Button(
-                            text = "Derived from primary color",
-                            floaterElement = {
-                                modelStore.data.map { it.proposedAccentColors }
-                                    .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
-                                        div("w-full h-12 p-1") {
-                                            colorBox(
-                                                color = color.color,
-                                                textColor = color.color.fittingFontColor(
-                                                    Color(1.0, 1.0, 1.0), // TODO: replace by better colors
-                                                    Color(0.0, 0.0, 0.0)
-                                                ),
-                                                textToRender = "${color.name}: {{hex}}",
-                                                handler = modelStore.addAccentColor,
-                                            )
+            div("grid grid-cols-12 gap-4") {
+                h2("col-span-full on-title-font font-semibold text-3xl antialiased") { +"Accent Colors" }
+                div("col-span-6 *:mb-3") {
+                    p { +"If you need need to highlight something, select an accent color." }
+                    div("text-sm text-slate-500") {
+                        p { +"In order to highlight something you probably don't want to use your primary color. So add one or more accent colors." }
+                        p { +"Be aware that too many color will also not do the trick ;)" }
+                    }
+
+                    div("border rounded-xl p-3 shadow-inner bg-slate-100") {
+                        p("text-sm mx-1 mb-1") { +"Possible actions:" }
+                        buttonGroup(
+                            Button(
+                                text = "Derived from primary color",
+                                floaterElement = {
+                                    modelStore.data.map { it.proposedAccentColors }
+                                        .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
+                                            div("w-full h-12 p-1") {
+                                                colorBox(
+                                                    color = color.color,
+                                                    textColor = color.color.fittingFontColor(
+                                                        Color(1.0, 1.0, 1.0), // TODO: replace by better colors
+                                                        Color(0.0, 0.0, 0.0)
+                                                    ),
+                                                    textToRender = "${color.name}: {{hex}}",
+                                                    handler = modelStore.addAccentColor,
+                                                )
+                                            }
                                         }
-                                    }
-                            },
-                            floaterOptions = Options(placement = Placement.BottomStart),
-                            floaterEvents = listOf(FloaterEventType.Click),
-                            floaterBlurOnOutsideClick = true,
-                        ),
-                        Button(
-                            text = "Add random accent color",
-                            clickHandler = modelStore.addRandomAccentColor,
-                        ),
-                        Button(
-                            type = ButtonType.ColorPicker,
-                            value = modelStore.data.map { it.proposedAccentColor.hex() },
-                            text = "Pick custom accent color",
-                            textHandler = modelStore.addAccentColorHex
+                                },
+                                floaterOptions = Options(placement = Placement.BottomStart),
+                                floaterEvents = listOf(FloaterEventType.Click),
+                                floaterBlurOnOutsideClick = true,
+                            ),
+                            Button(
+                                text = "Add random accent color",
+                                clickHandler = modelStore.addRandomAccentColor,
+                            ),
+                            Button(
+                                type = ButtonType.ColorPicker,
+                                value = modelStore.data.map { it.proposedAccentColor.hex() },
+                                text = "Pick custom accent color",
+                                textHandler = modelStore.addAccentColorHex
+                            )
                         )
-                    )
+                    }
                 }
 
-                div("border-t col-span-12 mt-3 pt-3 gap-4") {
+                div("border-t col-span-12 pt-3 gap-4") {
                     modelStore.data.map { it.namedAccentColors.isEmpty() }.render { isEmpty ->
                         p {
                             if (isEmpty) {
@@ -390,6 +412,7 @@ fun main() {
             number = 4,
             title = "Options",
         ) {
+            h2("col-span-full on-title-font font-semibold text-3xl antialiased mb-4") { +"Options" }
             div("grid grid-cols-5 gap-4") {
                 div("col-span-1") {
                     +"Include base color"
@@ -426,6 +449,7 @@ fun main() {
             number = 5,
             title = "Download",
         ) {
+            h2("col-span-full on-title-font font-semibold text-3xl antialiased mb-4") { +"Download" }
             div("grid grid-cols-12 gap-2") {
                 for (generator in OutputGenerator.allGenerators) {
                     div("col-span-2") {

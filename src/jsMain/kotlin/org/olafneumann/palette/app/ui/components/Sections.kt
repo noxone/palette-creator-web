@@ -18,19 +18,6 @@ fun RenderContext.section(
             }
         }
         div("col-span-12 lg:col-span-11") {
-            div("mb-3") {
-                h2("on-title-font font-semibold text-3xl antialiased") {
-                    +title
-                }
-                instruction?.let { p { +it } }
-            }
-
-            div("text-sm text-slate-500 mb-2") {
-                explanation?.split("\n")?.forEach {
-                    p { +it }
-                }
-            }
-
             content()
         }
     }
