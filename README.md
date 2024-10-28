@@ -1,6 +1,6 @@
 # Palette Creator
 
-This projects aims at making it *really* easy for everybody to create a nice looking color shades that can be included
+This projects aims at making it *really* easy for everybody to create a nice looking shades that can be included
 in nearly any development project.
 
 The idea is, to give a developer the possibility to use well fitting colors in a project.

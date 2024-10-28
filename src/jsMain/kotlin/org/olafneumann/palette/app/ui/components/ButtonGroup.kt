@@ -20,9 +20,9 @@ private val defaultButtonClasses = listOf(
     "px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
     "hover:bg-gray-100 hover:text-blue-700",
     "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
-    "dark:bg-gray-800 dark:border-gray-700 dark:text-white",
-    "dark:hover:text-white dark:hover:bg-gray-700",
-    "dark:focus:ring-blue-500 dark:focus:text-white",
+    //"dark:bg-gray-800 dark:border-gray-700 dark:text-white",
+    //"dark:hover:text-white dark:hover:bg-gray-700",
+    //"dark:focus:ring-blue-500 dark:focus:text-white",
     "first:rounded-s-lg last:rounded-e-lg"
 )
 
@@ -124,7 +124,12 @@ private fun RenderContext.createFloater(id: String, content: (HtmlTag<HTMLDivEle
     div {
         id(id)
         div {
-            className("shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800")
+            classList(
+                listOf(
+                    "shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm ",
+                    //"dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800"
+                )
+            )
 
             content(this)
         }

@@ -7,6 +7,7 @@ import dev.fritz2.core.title
 import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ShadeList
+import org.olafneumann.palette.colors.fittingFontColor
 
 
 fun RenderContext.colorList(
@@ -22,6 +23,7 @@ fun RenderContext.colorList(
                 width = width,
                 height = height,
                 color = color.color,
+                textColor = color.color.fittingFontColor(light = colors.last().color, dark = colors.first().color),
                 handler = handler
             )
         }
@@ -67,10 +69,14 @@ fun RenderContext.colorBox(
             outerClasses.add("border-slate-200")
             outerClasses.add("shadow-inner")
             outerClasses.add("mx-1")
+            outerClasses.add("first:ms-0")
+            outerClasses.add("last:me-0")
+            outerClasses.add("group")
+            outerClasses.add("text-xs")
         }
-        if (handler != null) {
+        /*if (handler != null) {
             outerClasses.add("hover:scale-105")
-        }
+        }*/
         classList(outerClasses)
         inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
         div {
@@ -79,6 +85,7 @@ fun RenderContext.colorBox(
                 innerClasses.add("rounded-lg")
             } else {
                 innerClasses.add("rounded")
+                innerClasses.add("*:hidden")
             }
             classList(innerClasses)
 
@@ -88,7 +95,7 @@ fun RenderContext.colorBox(
             title(colorHex)
 
             textHex?.let {
-                p {
+                p("group-hover:block") {
                     +(textToRender?.replace("{{hex}}", colorHex) ?: colorHex)
                 }
             }
