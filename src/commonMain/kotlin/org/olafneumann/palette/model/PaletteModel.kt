@@ -16,10 +16,12 @@ data class PaletteModel(
     val accentColorSeed: Int = ACCENT_COLOR_SEED_INIT,
     val neutralColor: Color,
     private val accentColors: List<Color>,
-    private val accentNames: List<String>,
+    private var accentNames: List<String>,
 ) {
     init {
-        require(accentColors.size == accentNames.size) { "accentColors size != accentNames size" }
+        if (accentColors.size != accentNames.size) {
+            accentNames = (1..accentColors.size).map { generateAccentColorName(it) }
+        }
     }
 
     // TODO: Improve way to generate accent colors!
@@ -61,10 +63,12 @@ data class PaletteModel(
         var counter = accentColors.size
         var name: String
         do {
-            name = "accent-${counter++}"
+            name = generateAccentColorName(counter++)
         } while (accentNames.contains(name))
         name
     }
+
+    private fun generateAccentColorName(index: Int) = "accent-$index"
 
     private fun Color.rotateUntil(colorName: ColorName): ProposedColor {
         var color = rotate(GOLDEN_ANGLE)
@@ -92,7 +96,7 @@ data class PaletteModel(
             accentColorSeed = if (increaseAccentColorSeed) accentColorSeed + 1 else accentColorSeed
         )
 
-    fun removeAccentColor(color: Color) =
+    private fun removeAccentColor(color: Color) =
         copy(accentColors = accentColors - color, accentNames = accentNames - accentNames[accentColors.indexOf(color)])
 
     fun removeAccentColor(name: String) =
