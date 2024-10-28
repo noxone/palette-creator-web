@@ -204,12 +204,6 @@ fun main() {
                             Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
                         )
 
-                        checkbox(
-                            value = modelStore.data.map { it.enforcePrimaryColorInShades },
-                            handler = modelStore.setPrimaryColorEnforcedInShades,
-                            label = "Make sure, the primary color is part of the generated shades."
-                        )
-
                         modelStore.data.map { it.isPrimaryColorSaturationHighEnough }.renderFalse {
                             warningToast("The saturation of the main color is quite low. This might not be a problem, but we propose to use a color with some more saturation as primary color.")
                         }
@@ -361,7 +355,7 @@ fun main() {
 
                     div("border-t col-span-12 mt-3 pt-3") {
                         p {
-                            modelStore.data.map { it.namedAccentColors.isEmpty() }.render(into = this) { isEmpty ->
+                            modelStore.data.map { it.namedAccentColors.isEmpty() }.render { isEmpty ->
                                 if (isEmpty) {
                                     +"No accent colors added yet."
                                 } else {
@@ -370,21 +364,24 @@ fun main() {
                             }
                         }
                         modelStore.data.map { it.accentColorsShadeLists }
-                            .renderEach(into = this, idProvider = {
+                            .renderEach(idProvider = {
                                 "accent_color_${it.name}"
                             }) { shadeList ->
-                                div {
-                                    className("grid grid-cols-12")
-                                    div {
-                                        className("col-span-2")
-                                        +shadeList.name
+                                div("grid grid-cols-12") {
+                                    div("col-span-2 group flex justify-between") {
+                                        div("place-self-center") {
+                                            +shadeList.name
+                                        }
 
-                                        button(
-                                            Button(
-                                                icon = { iconEdit() },
-                                                customCode = { clicks.map { shadeList.name } handledBy modelStore.renameAccentColor }
+                                        div("place-self-center") {
+                                            button(
+                                                Button(
+                                                    customClass = "hidden group-hover:inline-block",
+                                                    icon = { iconEdit() },
+                                                    customCode = { clicks.map { shadeList.name } handledBy modelStore.renameAccentColor }
+                                                )
                                             )
-                                        )
+                                        }
                                     }
                                     div {
                                         className("col-span-9 border rounded-lg p-2 shadow-inner")
@@ -414,25 +411,36 @@ fun main() {
                 number = 4,
                 title = "Options",
             ) {
-                h3 {
-                    modelStore.data.map { it.shadeCount }.render(into = this) {
-                        +"Shade count: $it"
+                div("grid grid-cols-5 gap-4") {
+                    div("col-span-1") {
+                        +"Include base color"
                     }
-                }
-                div {
-                    label {
-                        className("block mb-2 text-sm font-medium text-gray-900 dark:text-white")
-                        `for`("shade-count")
-                        modelStore.data.map { it.shadeCount }.renderText(into = this)
+                    div("col-span-4") {
+                        checkbox(
+                            value = modelStore.data.map { it.enforcePrimaryColorInShades },
+                            handler = modelStore.setPrimaryColorEnforcedInShades,
+                            label = "Make sure, the primary color is part of the generated shades."
+                        )
                     }
-                    input {
-                        className("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700")
-                        id("shade-count")
-                        type("range")
-                        min(SHADES_MIN.toString())
-                        max(SHADES_MAX.toString())
-                        value(modelStore.data.map { it.shadeCount.toString() })
-                        changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
+
+                    div("col-span-1") {
+                        +"Shade count"
+                    }
+                    div("col-span-4 flex justify-between gap-4") {
+                        label {
+                            className("block mb-2 text-sm text-gray-900 dark:text-white")
+                            `for`("shade-count")
+                            modelStore.data.map { it.shadeCount }.renderText(into = this)
+                        }
+                        input {
+                            className("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 place-self-center")
+                            id("shade-count")
+                            type("range")
+                            min(SHADES_MIN.toString())
+                            max(SHADES_MAX.toString())
+                            value(modelStore.data.map { it.shadeCount.toString() })
+                            changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
+                        }
                     }
                 }
             }
