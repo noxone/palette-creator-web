@@ -15,7 +15,7 @@ fun RenderContext.footer() =
                     }
                     p {
                         // TODO: Add description.
-                        +"Some more text to do describe stuff here."
+                        +"Some more text to describe stuff here. This will be a short summary of why you should use this page."
                     }
                 }
                 div("grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3") {
