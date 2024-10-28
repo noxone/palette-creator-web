@@ -359,14 +359,15 @@ fun main() {
                         )
                     }
 
-                    div {
-                        className(" col-span-12 mt-3 pt-3")
-                        className(
-                            modelStore.data.map { it.accentColorsShadeLists.isNotEmpty() },
-                            false
-                        ) { if (it) "border-t" else "hidden" }
+                    div("border-t col-span-12 mt-3 pt-3") {
                         p {
-                            +"The accent shades would look like this:"
+                            modelStore.data.map { it.namedAccentColors.isEmpty() }.render(into = this) { isEmpty ->
+                                if (isEmpty) {
+                                    +"No accent colors added yet."
+                                } else {
+                                    +"The accent shades would look like this:"
+                                }
+                            }
                         }
                         modelStore.data.map { it.accentColorsShadeLists }
                             .renderEach(into = this, idProvider = {
@@ -459,7 +460,7 @@ fun main() {
                 }
             }
 
-            boxy(additionalClasses = "bg-slate-100") {
+            boxy(additionalClasses = "bg-slate-200") {
                 footer()
             }
         }
