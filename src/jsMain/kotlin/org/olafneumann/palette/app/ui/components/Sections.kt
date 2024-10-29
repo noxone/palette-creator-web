@@ -12,12 +12,12 @@ fun RenderContext.section(
     content: HtmlTag<HTMLDivElement>.() -> Unit,
 ) =
     boxy {
-        div("hidden lg:block") {
+        div("hidden xl:block") {
             div("on-title-font text-7xl antialiased text-slate-500 w-full text-center lining-nums mt-5") {
                 +number.toString()
             }
         }
-        div("col-span-12 lg:col-span-11") {
+        div("col-span-12 xl:col-span-11") {
             content()
         }
     }

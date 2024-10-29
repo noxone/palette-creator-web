@@ -9,12 +9,33 @@ import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.fittingFontColor
 
+fun RenderContext.colorDisplay(shadeList: ShadeList, handler: Handler<Color>? = null) =
+    div("col-span-6") {
+        div("w-full h-16 lg:h-32") {
+            colorBox(
+                color = shadeList.baseColor,
+                textColor = shadeList.baseColor.fittingFontColor(
+                    light = shadeList.lightestColor,
+                    dark = shadeList.darkestColor
+                )
+            )
+        }
+
+        div("pt-3") {
+            colorList(
+                width = 2.5,
+                height = 2.5,
+                colors = shadeList.shadedColors,
+                handler = handler
+            )
+        }
+    }
 
 fun RenderContext.colorList(
     width: Double,
     height: Double,
     colors: List<ShadeList.ShadedColor>,
-    handler: Handler<Color>? = null
+    handler: Handler<Color>? = null,
 ) =
     div {
         className("flex flex-row justify-around justify-items-center")
@@ -33,7 +54,7 @@ fun RenderContext.colorList(
 fun RenderContext.colorList(
     width: Double,
     height: Double,
-    colors: List<Color>
+    colors: List<Color>,
 ) =
     div {
         className("flex flex-row justify-around justify-items-center")
@@ -80,7 +101,15 @@ fun RenderContext.colorBox(
         classList(outerClasses)
         inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
         div {
-            val innerClasses = mutableListOf("shadow-inner","w-full","h-full","flex","flex-wrap","justify-center","content-center")
+            val innerClasses = mutableListOf(
+                "shadow-inner",
+                "w-full",
+                "h-full",
+                "flex",
+                "flex-wrap",
+                "justify-center",
+                "content-center"
+            )
             if (bigBox) {
                 innerClasses.add("rounded-lg")
             } else {

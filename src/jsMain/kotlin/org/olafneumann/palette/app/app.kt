@@ -23,6 +23,7 @@ import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
 import org.olafneumann.palette.app.ui.components.checkbox
 import org.olafneumann.palette.app.ui.components.colorBox
+import org.olafneumann.palette.app.ui.components.colorDisplay
 import org.olafneumann.palette.app.ui.components.colorList
 import org.olafneumann.palette.app.ui.components.iconDownload
 import org.olafneumann.palette.app.ui.components.iconEdit
@@ -158,7 +159,7 @@ fun main() {
     render(selector = "#on_main") {
         Window.resizes handledBy colorCountStore.setSize
 
-        div("mt-5 px-4 py-7 bg-orange-400 rounded-xl shadow-xl relative text-center") {
+        div("mt-5 px-4 py-7 bg-orange-400 md:rounded-xl shadow-xl relative text-center") {
             // TODO: use color 57A0CC
             id(HEADER_ID)
             div("py-4 sm:py-6") {
@@ -189,9 +190,9 @@ fun main() {
             instruction = "Please pick or enter the main color you want to use for your application.",
             explanation = """This is the main color for your app or website. It determines the color, people mostly see when interacting with your software.""".trimMargin(),
         ) {
-            div("grid grid-cols-12 gap-4") {
+            div("grid grid-cols-6 lg:grid-cols-12 gap-4") {
                 h2("col-span-full on-title-font font-semibold text-3xl antialiased") { +"Primary Color" }
-                div("col-span-6 *:mb-3") {
+                div("col-span-6 grid gap-3") {
                     p { +"Please pick or enter the main color you want to use for your application." }
                     div("text-sm text-slate-500") {
                         p { +"This is the main color for your app or website. It will be the most recognizable color in your software. Use this color for all important content." }
@@ -216,31 +217,8 @@ fun main() {
                     }
                 }
 
-                div("col-span-6") {
-                    div("w-full h-32") {
-                        modelStore.data.render(into = this) {
-                            colorBox(
-                                color = it.primaryColor,
-                                textColor = it.primaryColor.fittingFontColor(
-                                    light = it.primaryColorShadeList.lightestColor,
-                                    dark = it.primaryColorShadeList.darkestColor
-                                )
-                            )
-                        }
-                    }
-
-                    div("pt-3") {
-                        modelStore.data.map { it.primaryColorShadeList.shadedColors }
-                            .render(into = this) { colors ->
-                                colorList(
-                                    width = 2.5,
-                                    height = 2.5,
-                                    colors = colors,
-                                    handler = modelStore.copyColorToClipboard
-                                )
-                            }
-                    }
-
+                modelStore.data.map { it.primaryColorShadeList }.render { shadeList ->
+                    colorDisplay(shadeList = shadeList, handler = modelStore.copyColorToClipboard)
                 }
             }
         }
@@ -253,7 +231,7 @@ fun main() {
                     |There is no real science in choosing the neutral color. It should just fit to your primary color.
                 """.trimMargin(),
         ) {
-            div("grid grid-cols-12 gap-4") {
+            div("grid grid-cols-6 lg:grid-cols-12 gap-4") {
                 h2("col-span-full on-title-font font-semibold text-3xl antialiased") { +"Neutral Color" }
                 div("col-span-6 *:mb-3") {
                     p { +"Choose a neutral color. Shades of this might be used for backgrounds, texts or borders." }
@@ -277,27 +255,8 @@ fun main() {
                     }
                 }
 
-                div("col-span-6") {
-                    div("w-full h-32") {
-                        modelStore.data.render(into = this) {
-                            colorBox(
-                                color = it.neutralColor,
-                                textColor = it.neutralColorShadeList.lightestColor
-                            )
-                        }
-                    }
-
-                    div("pt-3") {
-                        modelStore.data.map { it.neutralColorShadeList.shadedColors }
-                            .render(into = this) { colors ->
-                                colorList(
-                                    width = 2.5,
-                                    height = 2.5,
-                                    colors = colors,
-                                    handler = modelStore.copyColorToClipboard
-                                )
-                            }
-                    }
+                modelStore.data.map { it.neutralColorShadeList }.render { shadeList ->
+                    colorDisplay(shadeList = shadeList, handler = modelStore.copyColorToClipboard)
                 }
             }
         }
