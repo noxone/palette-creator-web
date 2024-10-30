@@ -30,7 +30,6 @@ import org.olafneumann.palette.app.ui.components.iconDownload
 import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
-import org.olafneumann.palette.app.ui.components.warningToast
 import org.olafneumann.palette.app.utils.copyToClipboard
 import org.olafneumann.palette.app.utils.startDownload
 import org.olafneumann.palette.app.utils.toCurrentWindowLocation
@@ -173,8 +172,8 @@ fun main() {
             }
             colorCountStore.data.render { colorCount ->
                 colorList(
-                    width = 2.5,
-                    height = 2.8,
+                    width = "w-3",
+                    height = "h-10",
                     colors = (0..<colorCount).map {
                         Color.hsluv(
                             h = 290.0 / colorCount * it,
@@ -276,49 +275,40 @@ fun main() {
             contentBelow = true
         ) {
             div {
-                modelStore.data.map { it.namedAccentColors.isEmpty() }.render { isEmpty ->
-                    p {
-                        if (isEmpty) {
-                            +"No accent colors added yet."
-                        } else {
-                            +"The accent shades would look like this:"
-                        }
-                    }
+                modelStore.data.map { it.namedAccentColors.isEmpty() }.renderTrue {
+                    p { +"No accent colors added yet." }
                 }
                 modelStore.data.map { it.accentColorsShadeLists }
                     .renderEach(idProvider = {
                         "accent_color_${it.name}_${it.shadedColors.size}"
                     }) { shadeList ->
-                        div("grid grid-cols-12 mt-2 gap-4") {
-                            div("col-span-2 group flex justify-between") {
+                        div("first:border-t last:border-b first:rounded-t-xl last:rounded-b-xl even:bg-slate-100 border-x group/buttons grid grid-cols-12 p-2 gap-4") {
+                            div("col-span-3 flex justify-between") {
                                 div("place-self-center") {
                                     +shadeList.name
                                 }
 
                                 div("place-self-center") {
-                                    button(
+                                    buttonGroup(
                                         Button(
-                                            customClass = "hidden group-hover:inline-block",
+                                            customClass = "hidden group-hover/buttons:inline-block",
                                             icon = { iconEdit() },
-                                            customCode = { clicks.map { shadeList.name } handledBy modelStore.renameAccentColor }
-                                        )
-                                    )
+                                            textHandler = modelStore.renameAccentColor,
+                                            stringMapper = { shadeList.name }
+                                        ), Button(
+                                            customClass = "hidden group-hover/buttons:inline-block",
+                                            icon = { iconTrash() },
+                                            textHandler = modelStore.removeAccentColor,
+                                            stringMapper = { shadeList.name }
+                                        ))
                                 }
                             }
-                            div("col-span-9 border rounded-lg p-2 shadow-inner") {
-                                inlineStyle("max-width:46rem;")
-                                colorList(
-                                    width = 2.5,
-                                    height = 2.5,
-                                    shadeList.shadedColors,
+                            div("col-span-9") {
+                                colorDisplay(
+                                    shadeList = shadeList,
+                                    vertical = true,
                                     handler = modelStore.copyColorToClipboard
                                 )
-                            }
-                            div("col-span-1 place-self-center") {
-                                button(Button(
-                                    icon = { iconTrash() },
-                                    customCode = { clicks.map { shadeList.name } handledBy modelStore.removeAccentColor }
-                                ))
                             }
                         }
                     }

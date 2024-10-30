@@ -9,6 +9,7 @@ import dev.fritz2.core.type
 import dev.fritz2.core.value
 import dev.fritz2.core.values
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.npm.Floater
 import org.olafneumann.palette.app.npm.FloaterEventType
 import org.olafneumann.palette.app.npm.Options
@@ -17,7 +18,7 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.MouseEvent
 
 private val defaultButtonClasses = listOf(
-    "px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
+    "p-2 text-sm font-medium text-gray-900 bg-white border border-gray-200",
     "hover:bg-gray-100 hover:text-blue-700",
     "focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700",
     //"dark:bg-gray-800 dark:border-gray-700 dark:text-white",
@@ -45,6 +46,7 @@ data class Button(
     val floaterEvents: List<FloaterEventType> = emptyList(),
     val floaterBlurOnOutsideClick: Boolean = true,
     val customCode: (RenderContext.() -> Unit)? = null,
+    val stringMapper: ((Any) -> String)? = null,
 )
 
 fun RenderContext.button(button: Button, additionalClasses: List<String> = emptyList()) =
@@ -59,8 +61,12 @@ fun RenderContext.button(button: Button, additionalClasses: List<String> = empty
         button.text?.let { text ->
             span { +text }
         }
-        button.clickHandler?.let { clicks handledBy it }
         button.customCode?.let { it() }
+        if (button.stringMapper == null) {
+            button.clickHandler?.let { clicks handledBy it }
+        } else {
+            button.textHandler?.let { clicks.map { click -> button.stringMapper.invoke(click) } handledBy it }
+        }
 
         var backgroundElementId: String? = null
         if (button.floaterBlurOnOutsideClick && (button.floaterElement != null || button.floaterElementId != null)) {
