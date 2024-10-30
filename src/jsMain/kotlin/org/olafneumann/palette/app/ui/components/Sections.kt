@@ -54,15 +54,10 @@ fun RenderContext.section(
                         .forEach { p { +it } }
                 }
 
-                div("border rounded-xl p-3 shadow-inner bg-slate-100") {
-                    p("text-sm mx-1 mb-1") { +"Possible actions:" }
+                div("border rounded-xl p-3 shadow-inner bg-slate-100 grid gap-2") {
+                    p("text-sm") { +"Possible actions:" }
                     buttonGroup(actions)
-
-                    toastConfig?.let { toast ->
-                        toast.flow.renderTrue {
-                            warningToast(toast.message)
-                        }
-                    }
+                    toastConfig?.let { toast -> toast.flow.renderTrue { warningToast(toast.message) } }
                 }
             }
 

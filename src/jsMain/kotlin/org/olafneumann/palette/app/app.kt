@@ -274,45 +274,43 @@ fun main() {
             ),
             contentBelow = true
         ) {
-            div {
-                modelStore.data.map { it.namedAccentColors.isEmpty() }.renderTrue {
-                    p { +"No accent colors added yet." }
-                }
-                modelStore.data.map { it.accentColorsShadeLists }
-                    .renderEach(idProvider = {
-                        "accent_color_${it.name}_${it.shadedColors.size}"
-                    }) { shadeList ->
-                        div("first:border-t last:border-b first:rounded-t-xl last:rounded-b-xl even:bg-slate-100 border-x group/buttons grid grid-cols-12 p-2 gap-4") {
-                            div("col-span-3 flex justify-between") {
-                                div("place-self-center") {
-                                    +shadeList.name
-                                }
-
-                                div("place-self-center") {
-                                    buttonGroup(
-                                        Button(
-                                            customClass = "hidden group-hover/buttons:inline-block",
-                                            icon = { iconEdit() },
-                                            textHandler = modelStore.renameAccentColor,
-                                            stringMapper = { shadeList.name }
-                                        ), Button(
-                                            customClass = "hidden group-hover/buttons:inline-block",
-                                            icon = { iconTrash() },
-                                            textHandler = modelStore.removeAccentColor,
-                                            stringMapper = { shadeList.name }
-                                        ))
-                                }
+            modelStore.data.map { it.namedAccentColors.isEmpty() }.renderTrue {
+                p { +"No accent colors added yet." }
+            }
+            modelStore.data.map { it.accentColorsShadeLists }
+                .renderEach(idProvider = {
+                    "accent_color_${it.name}_${it.shadedColors.size}"
+                }) { shadeList ->
+                    div("first:border-t last:border-b first:rounded-t-xl last:rounded-b-xl even:bg-slate-100 border-x group/buttons grid grid-cols-12 p-2 gap-4") {
+                        div("col-span-3 flex justify-between") {
+                            div("place-self-center") {
+                                +shadeList.name
                             }
-                            div("col-span-9") {
-                                colorDisplay(
-                                    shadeList = shadeList,
-                                    vertical = true,
-                                    handler = modelStore.copyColorToClipboard
-                                )
+
+                            div("place-self-center") {
+                                buttonGroup(
+                                    Button(
+                                        customClass = "hidden group-hover/buttons:inline-block",
+                                        icon = { iconEdit() },
+                                        textHandler = modelStore.renameAccentColor,
+                                        stringMapper = { shadeList.name }
+                                    ), Button(
+                                        customClass = "hidden group-hover/buttons:inline-block",
+                                        icon = { iconTrash() },
+                                        textHandler = modelStore.removeAccentColor,
+                                        stringMapper = { shadeList.name }
+                                    ))
                             }
                         }
+                        div("col-span-9") {
+                            colorDisplay(
+                                shadeList = shadeList,
+                                vertical = true,
+                                handler = modelStore.copyColorToClipboard
+                            )
+                        }
                     }
-            }
+                }
         }
 
         section(
