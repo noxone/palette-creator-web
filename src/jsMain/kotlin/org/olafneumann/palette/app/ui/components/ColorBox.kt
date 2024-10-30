@@ -10,7 +10,7 @@ import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.fittingFontColor
 
 fun RenderContext.colorDisplay(shadeList: ShadeList, handler: Handler<Color>? = null) =
-    div("col-span-6") {
+    div {
         div("w-full h-16 lg:h-32") {
             colorBox(
                 color = shadeList.baseColor,
