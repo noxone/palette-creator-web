@@ -4,6 +4,9 @@ import org.olafneumann.palette.colorful.Color
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+// TODO: create ShadeLists
+// 11: 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950
+
 data class ShadeList(
     val name: String,
     val baseColor: Color,
@@ -47,6 +50,8 @@ data class ShadeList(
                 return emptyList()
             } else if (shadeCount == 1) {
                 return createShades(forColor = forColor, values = listOf((min + max) * 0.5))
+            } else if (shadeCount == 11 && !ensureColorIsIncluded) {
+                return createShades(forColor = forColor, values = listOf(0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95))
             }
 
             val span = max - min

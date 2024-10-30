@@ -9,12 +9,37 @@ import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.fittingFontColor
 
+fun RenderContext.colorDisplay(shadeList: ShadeList, vertical: Boolean = false, handler: Handler<Color>? = null) =
+    div("grid grid-cols-5 gap-3") {
+        val classListFirst = listOf(if (vertical) "col-span-2 h-12" else "col-span-full h-16 lg:h-32")
+        val classListSecond = listOf(if (vertical) "col-span-3" else "col-span-full")
+        div("w-full") {
+            classList(classListFirst)
+            colorBox(
+                color = shadeList.baseColor,
+                textColor = shadeList.baseColor.fittingFontColor(
+                    light = shadeList.lightestColor,
+                    dark = shadeList.darkestColor
+                )
+            )
+        }
+
+        div {
+            classList(classListSecond)
+            colorList(
+                width = "w-3",
+                height = if (vertical) "h-12" else "h-10",
+                colors = shadeList.shadedColors,
+                handler = handler
+            )
+        }
+    }
 
 fun RenderContext.colorList(
-    width: Double,
-    height: Double,
+    width: String,
+    height: String,
     colors: List<ShadeList.ShadedColor>,
-    handler: Handler<Color>? = null
+    handler: Handler<Color>? = null,
 ) =
     div {
         className("flex flex-row justify-around justify-items-center")
@@ -31,9 +56,9 @@ fun RenderContext.colorList(
 
 
 fun RenderContext.colorList(
-    width: Double,
-    height: Double,
-    colors: List<Color>
+    width: String,
+    height: String,
+    colors: List<Color>,
 ) =
     div {
         className("flex flex-row justify-around justify-items-center")
@@ -48,8 +73,8 @@ fun RenderContext.colorBox(
     color: Color,
     textColor: Color? = null,
     textToRender: String? = null,
-    width: Double? = null,
-    height: Double? = null,
+    width: String? = null,
+    height: String? = null,
     handler: Handler<Color>? = null,
 ) =
     div {
@@ -77,10 +102,20 @@ fun RenderContext.colorBox(
         /*if (handler != null) {
             outerClasses.add("hover:scale-105")
         }*/
+        width?.let { outerClasses.add(it) }
+        height?.let { outerClasses.add(it) }
         classList(outerClasses)
-        inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
+        //inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
         div {
-            val innerClasses = mutableListOf("shadow-inner","w-full","h-full","flex","flex-wrap","justify-center","content-center")
+            val innerClasses = mutableListOf(
+                "shadow-inner",
+                "w-full",
+                "h-full",
+                "flex",
+                "flex-wrap",
+                "justify-center",
+                "content-center"
+            )
             if (bigBox) {
                 innerClasses.add("rounded-lg")
             } else {
