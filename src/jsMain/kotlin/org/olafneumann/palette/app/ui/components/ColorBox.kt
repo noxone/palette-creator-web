@@ -3,8 +3,14 @@ package org.olafneumann.palette.app.ui.components
 import dev.fritz2.core.Handler
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.id
-import dev.fritz2.core.title
 import kotlinx.coroutines.flow.map
+import org.olafneumann.palette.app.npm.Floater
+import org.olafneumann.palette.app.npm.FloaterEventType
+import org.olafneumann.palette.app.npm.Options
+import org.olafneumann.palette.app.npm.flip
+import org.olafneumann.palette.app.npm.offset
+import org.olafneumann.palette.app.npm.shift
+import org.olafneumann.palette.app.utils.IdGenerator
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.fittingFontColor
@@ -69,7 +75,6 @@ fun RenderContext.colorList(
 
 @Suppress("LongParameterList")
 fun RenderContext.colorBox(
-    id: String? = null,
     color: Color,
     textColor: Color? = null,
     textToRender: String? = null,
@@ -96,17 +101,13 @@ fun RenderContext.colorBox(
             outerClasses.add("mx-1")
             outerClasses.add("first:ms-0")
             outerClasses.add("last:me-0")
-            outerClasses.add("group")
-            outerClasses.add("text-xs")
         }
-        /*if (handler != null) {
-            outerClasses.add("hover:scale-105")
-        }*/
         width?.let { outerClasses.add(it) }
         height?.let { outerClasses.add(it) }
         classList(outerClasses)
-        //inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
         div {
+            val id = IdGenerator.next
+            id(id)
             val innerClasses = mutableListOf(
                 "shadow-inner",
                 "w-full",
@@ -120,19 +121,31 @@ fun RenderContext.colorBox(
                 innerClasses.add("rounded-lg")
             } else {
                 innerClasses.add("rounded")
-                innerClasses.add("*:hidden")
             }
             classList(innerClasses)
 
             inlineStyle("background-color:$colorHex;${textHex.css("color")};")
 
-            id?.let { id(it) }
-            title(colorHex)
+            //title(colorHex)
 
-            textHex?.let {
-                p("group-hover:block") {
+            if (textToRender != null || bigBox) {
+                textHex?.let {
                     +(textToRender?.replace("{{hex}}", colorHex) ?: colorHex)
                 }
+            } else {
+                val floaterId = IdGenerator.next
+                div("hidden text-slate-900 bg-slate-100 border-slate-400 px-4 py-2 border rounded-xl") {
+                    id(floaterId)
+                    +colorHex
+                }
+                val floater = Floater(
+                    referenceElementId = id,
+                    floatingElementId = floaterId,
+                    options = Options(
+                        middleware = arrayOf(offset(1), flip(), shift()),
+                    )
+                )
+                floater.install(inHtmlTag = this, forType = FloaterEventType.MouseOver)
             }
         }
 

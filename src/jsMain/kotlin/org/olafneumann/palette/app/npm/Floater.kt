@@ -15,7 +15,7 @@ private const val KEYCODE_ESCAPE = 0x0001
 private const val DEFAULT_OFFSET = 5
 
 data class Options(
-    val placement: Placement = Placement.Right,
+    val placement: Placement = Placement.Top,
     val middleware: Array<Middleware> = arrayOf(offset(DEFAULT_OFFSET), flip(), shift()),
 ) {
     private fun toMap(): Map<String, Any> =

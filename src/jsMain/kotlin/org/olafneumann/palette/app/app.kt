@@ -4,6 +4,7 @@ import dev.fritz2.core.Handler
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
 import dev.fritz2.core.`for`
+import dev.fritz2.core.href
 import dev.fritz2.core.id
 import dev.fritz2.core.max
 import dev.fritz2.core.min
@@ -353,22 +354,33 @@ fun main() {
             number = 5,
             title = "Download",
         ) {
-            div("grid grid-cols-12 gap-2") {
+            p("mb-3") { +"The following download options prepare the colors in certain ways that you might need." }
+            div {
                 for (generator in OutputGenerator.allGenerators) {
-                    div("col-span-2") {
-                        button(
-                            Button(
-                                customClass = "w-full",
-                                icon = { iconDownload() },
-                                text = generator.title,
-                                customCode = { clicks.map { generator } handledBy modelStore.downloadOutput }
+                    div("grid grid-cols-12 gap-4 p-2 first:rounded-t-xl last:rounded-b-xl first:border-t last:border-b border-s border-e even:bg-slate-100") {
+                        div("col-span-2") {
+                            button(
+                                Button(
+                                    customClass = "w-full",
+                                    icon = { iconDownload() },
+                                    text = generator.title,
+                                    customCode = { clicks.map { generator } handledBy modelStore.downloadOutput }
+                                )
                             )
-                        )
-                    }
-                    div("col-span-10 place-self-center w-full") {
-                        +generator.description
+                        }
+                        div("col-span-10 place-self-center w-full") {
+                            +generator.description
+                        }
                     }
                 }
+            }
+            p("mt-3 text-sm text-slate-600") {
+                +"If you are missing a download functionality or maybe some IDE integration, please open a "
+                a("hover:underline hover:text-blue-700") {
+                    +"Github issue"
+                    href("https://github.com/noxone/palette-creator-web/issues")
+                }
+                +" to propose a change."
             }
         }
     }
