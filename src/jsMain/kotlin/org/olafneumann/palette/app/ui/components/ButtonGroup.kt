@@ -152,10 +152,12 @@ fun RenderContext.buttonGroup(buttons: Collection<Button>) =
             className("inline-flex shadow rounded-lg *:shadow-none")
 
             for (button in buttons) {
+                val additionalClasses = if (button.text != null) listOf("px-4") else emptyList()
+
                 if (button.type == ButtonType.Button) {
-                    button(button = button)
+                    button(button = button, additionalClasses = additionalClasses)
                 } else if (button.type == ButtonType.ColorPicker) {
-                    colorPicker(button = button)
+                    colorPicker(button = button, additionalClasses = additionalClasses)
                 }
             }
         }
