@@ -32,13 +32,11 @@ import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.utils.copyToClipboard
-import org.olafneumann.palette.app.utils.startDownload
 import org.olafneumann.palette.app.utils.toCurrentWindowLocation
 import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
 import org.olafneumann.palette.colors.fittingFontColor
-import org.olafneumann.palette.model.OutputGenerator
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
@@ -147,7 +145,7 @@ fun main() {
             handle { model: PaletteModel, count: Int -> model.copy(shadeCount = count) }
 
         val downloadOutput: Handler<OutputGenerator> = handle { model, generator ->
-            generator.generateOutput(model).startDownload()
+            generator.startDownload(model)
             model
         }
 

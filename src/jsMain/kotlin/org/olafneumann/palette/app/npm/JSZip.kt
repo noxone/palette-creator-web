@@ -1,5 +1,6 @@
 package org.olafneumann.palette.app.npm
 
+import org.olafneumann.palette.app.utils.toJson
 import org.w3c.files.Blob
 import kotlin.js.Promise
 
@@ -11,6 +12,9 @@ external class JSZip {
     fun folder(folderName: String): JSZip
     fun generateAsync(type: dynamic): Promise<Blob>
 }
+
+fun JSZip.generateAsync(): Promise<Blob> =
+    generateAsync(mapOf("type" to "blob").toJson())
 
 /*
 val text = "bla bla bla"
