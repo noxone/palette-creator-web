@@ -20,6 +20,7 @@ import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.Placement
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
+import org.olafneumann.palette.app.ui.components.ColorBoxType
 import org.olafneumann.palette.app.ui.components.ToastConfig
 import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
@@ -245,6 +246,7 @@ fun main() {
                             .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
                                 div("w-full h-12 p-1") {
                                     colorBox(
+                                        type = ColorBoxType.Button,
                                         color = color.color,
                                         textColor = color.color.fittingFontColor(
                                             Color(1.0, 1.0, 1.0), // TODO: replace by better colors

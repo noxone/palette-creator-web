@@ -22,6 +22,7 @@ fun RenderContext.colorDisplay(shadeList: ShadeList, vertical: Boolean = false, 
         div("w-full") {
             classList(classListFirst)
             colorBox(
+                type = ColorBoxType.Big,
                 color = shadeList.baseColor,
                 textColor = shadeList.baseColor.fittingFontColor(
                     light = shadeList.lightestColor,
@@ -51,6 +52,7 @@ fun RenderContext.colorList(
         className("flex flex-row justify-around justify-items-center")
         colors.forEach { color ->
             colorBox(
+                type = ColorBoxType.Small,
                 width = width,
                 height = height,
                 color = color.color,
@@ -69,12 +71,20 @@ fun RenderContext.colorList(
     div {
         className("flex flex-row justify-around justify-items-center")
         colors.forEach { color ->
-            colorBox(width = width, height = height, color = color)
+            colorBox(type = ColorBoxType.Title, width = width, height = height, color = color)
         }
     }
 
+private fun <T> MutableList<T>.addAll(vararg items: T) =
+    addAll(items)
+
+enum class ColorBoxType {
+    Big, Small, Title, Button
+}
+
 @Suppress("LongParameterList")
 fun RenderContext.colorBox(
+    type: ColorBoxType,
     color: Color,
     textColor: Color? = null,
     textToRender: String? = null,
@@ -83,24 +93,37 @@ fun RenderContext.colorBox(
     handler: Handler<Color>? = null,
 ) =
     div {
-        val bigBox = width == null && height == null
         val colorHex = color.hex()
         val textHex = textColor?.hex()
 
         val outerClasses = mutableListOf("on-title-font", "font-thin", "transition-all")
-        if (bigBox) {
-            outerClasses.add("rounded-lg")
-            outerClasses.add("shadow-xl")
-            outerClasses.add("h-full")
-        } else {
-            outerClasses.add("flex-auto")
-            outerClasses.add("rounded")
-            outerClasses.add("border")
-            outerClasses.add("border-slate-200")
-            outerClasses.add("shadow-inner")
-            outerClasses.add("mx-1")
-            outerClasses.add("first:ms-0")
-            outerClasses.add("last:me-0")
+        when (type) {
+            ColorBoxType.Big -> {
+                outerClasses.addAll(
+                    "rounded-lg",
+                    "shadow-xl",
+                    "h-full"
+                )
+            }
+            ColorBoxType.Button -> {
+                outerClasses.addAll(
+                    "rounded-lg",
+                    "shadow",
+                    "h-full"
+                )
+            }
+            else -> {
+                outerClasses.addAll(
+                    "flex-auto",
+                    "rounded",
+                    "border",
+                    "border-slate-200",
+                    "shadow-inner",
+                    "mx-1",
+                    "first:ms-0",
+                    "last:me-0"
+                )
+            }
         }
         width?.let { outerClasses.add(it) }
         height?.let { outerClasses.add(it) }
@@ -109,7 +132,6 @@ fun RenderContext.colorBox(
             val id = IdGenerator.next
             id(id)
             val innerClasses = mutableListOf(
-                "shadow-inner",
                 "w-full",
                 "h-full",
                 "flex",
@@ -117,10 +139,16 @@ fun RenderContext.colorBox(
                 "justify-center",
                 "content-center"
             )
-            if (bigBox) {
-                innerClasses.add("rounded-lg")
-            } else {
-                innerClasses.add("rounded")
+            when (type) {
+                ColorBoxType.Big -> {
+                    innerClasses.addAll("shadow-inner", "rounded-lg")
+                }
+                ColorBoxType.Button -> {
+                    innerClasses.addAll("shadow", "rounded")
+                }
+                else -> {
+                    innerClasses.addAll("shadow-inner", "rounded")
+                }
             }
             classList(innerClasses)
 
@@ -128,11 +156,11 @@ fun RenderContext.colorBox(
 
             //title(colorHex)
 
-            if (textToRender != null || bigBox) {
+            if (type == ColorBoxType.Big || textToRender != null) {
                 textHex?.let {
                     +(textToRender?.replace("{{hex}}", colorHex) ?: colorHex)
                 }
-            } else {
+            } else if (type == ColorBoxType.Small) {
                 val floaterId = IdGenerator.next
                 div("hidden text-slate-900 bg-slate-100 border-slate-400 px-4 py-2 border rounded-xl") {
                     id(floaterId)
