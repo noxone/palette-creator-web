@@ -51,11 +51,11 @@ fun RenderContext.section(
                 p { +instruction }
                 div("text-sm text-slate-500") {
                     explanation.split("\n")
-                        .forEach { p { +it } }
+                        .forEach { p("mb-1 last:mb-0") { +it } }
                 }
 
-                div("border rounded-xl p-3 shadow-inner bg-slate-100 grid gap-2") {
-                    p("text-sm") { +"Possible actions:" }
+                div("w-fit border rounded-xl p-3 shadow-inner bg-slate-100 grid gap-2") {
+                    p("text-sm font-normal") { +"Possible actions:" }
                     buttonGroup(actions)
                     toastConfig?.let { toast -> toast.flow.renderTrue { warningToast(toast.message) } }
                 }

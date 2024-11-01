@@ -86,7 +86,6 @@ fun main() {
             val hasAccentColorsDefined = model.namedAccentColors.isNotEmpty()
             val resetAccentColors =
                 hasAccentColorsDefined && window.confirm("Changing the primary color could make the existing accept colors unusable. Should these be reset?")
-            console.log(hasAccentColorsDefined, resetAccentColors)
             return resetAccentColors
         }
 
@@ -213,7 +212,7 @@ fun main() {
             number = 2,
             title = "Neutral Color",
             instruction = "Choose a neutral color. Shades of this might be used for backgrounds, texts or borders.",
-            explanation = """True black or white often looks strange to the eye, so we should go with some other very dark or light colors.
+            explanation = """True black or white often looks strange to the eye, so we should go with some other very dark or light colors. These shades may also be used for neutral borders or slight highlighting.
                     |There is no real science in choosing the neutral color. It should just fit to your primary color.
                 """.trimMargin(),
             actions = listOf(
@@ -236,10 +235,12 @@ fun main() {
             number = 3,
             title = "Accent Colors",
             instruction = "If you need need to highlight something, select an accent color.",
-            explanation = """In order to highlight something you probably don't want to use your primary color. So add one or more accent colors.
+            explanation = """In order to highlight something you probably don't want to use your primary color. So, please add one or more accent colors.
+                    |Do not solely rely on accent colors. Express specific conditions through multiple options, as colors are used and understood differently in different parts of the world. 
                     |Be aware that too many color will also not do the trick ;)""".trimMargin(),
             actions = listOf(
                 Button(
+                    // TODO: Disable this button of there are not colors...
                     text = "Derived from primary color",
                     floaterElement = {
                         modelStore.data.map { it.proposedAccentColors }

@@ -18,7 +18,7 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.MouseEvent
 
 private val defaultButtonClasses = listOf(
-    "p-2 text-sm font-medium text-gray-900 bg-white border-gray-200",
+    "p-2 text-sm font-normal text-gray-900 bg-white border-gray-200",
     //"border-t border-b border-s last:border-e shadow-sm",
     "border-e last:border-none shadow",
     "hover:bg-gray-100 hover:text-blue-700",
