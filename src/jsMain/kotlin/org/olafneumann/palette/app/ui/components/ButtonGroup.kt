@@ -10,15 +10,12 @@ import dev.fritz2.core.value
 import dev.fritz2.core.values
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.npm.Floater
-import org.olafneumann.palette.app.npm.FloaterEventType
-import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.MouseEvent
 
 private val defaultButtonClasses = listOf(
-    "p-2 text-sm font-medium text-gray-900 bg-white border-gray-200",
+    "p-2 text-sm font-normal text-gray-900 bg-white border-gray-200",
     //"border-t border-b border-s last:border-e shadow-sm",
     "border-e last:border-none shadow",
     "hover:bg-gray-100 hover:text-blue-700",
@@ -134,7 +131,8 @@ private fun RenderContext.createFloater(id: String, content: (HtmlTag<HTMLDivEle
         div {
             classList(
                 listOf(
-                    "shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm ",
+                    "shadow-xl z-10 inline-block w-48 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg",
+                    "transition-opacity duration-300"
                     //"dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800"
                 )
             )
@@ -143,19 +141,22 @@ private fun RenderContext.createFloater(id: String, content: (HtmlTag<HTMLDivEle
         }
     }
 
-fun RenderContext.buttonGroup(vararg buttons: Button) =
-    buttonGroup(buttons = buttons.asList())
+fun RenderContext.buttonGroup(classes: List<String> = emptyList(), vararg buttons: Button) =
+    buttonGroup(classes = classes, buttons = buttons.asList())
 
-fun RenderContext.buttonGroup(buttons: Collection<Button>) =
+fun RenderContext.buttonGroup(classes: List<String> = emptyList(), buttons: Collection<Button>) =
     div {
+        classList(classes)
         div {
             className("inline-flex shadow rounded-lg *:shadow-none")
 
             for (button in buttons) {
+                val additionalClasses = if (button.text != null) listOf("px-4") else emptyList()
+
                 if (button.type == ButtonType.Button) {
-                    button(button = button)
+                    button(button = button, additionalClasses = additionalClasses)
                 } else if (button.type == ButtonType.ColorPicker) {
-                    colorPicker(button = button)
+                    colorPicker(button = button, additionalClasses = additionalClasses)
                 }
             }
         }

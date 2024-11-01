@@ -13,6 +13,7 @@ data class PaletteModel(
     val shadeCount: Int,
     val primaryColor: Color,
     val enforcePrimaryColorInShades: Boolean,
+    val usePredefinedShades: Boolean,
     val accentColorSeed: Int = ACCENT_COLOR_SEED_INIT,
     val neutralColor: Color,
     private val accentColors: List<Color>,
@@ -57,8 +58,9 @@ data class PaletteModel(
     val isNeutralColorSaturationLowEnough = neutralColor.hsluv().s < NEUTRAL_MAX_SATURATION
 
     val proposedAccentColors = ColorName.entries
-        .map { primaryColor.rotateUntil(it) }
-        .filter { pac -> !accentColors.contains(pac.color) }
+            .mapNotNull { primaryColor.rotateUntil(it) }
+            .filter { pac -> !accentColors.contains(pac.color) }
+
     private val proposedAccentColorName by lazy {
         var counter = accentColors.size
         var name: String
@@ -70,12 +72,15 @@ data class PaletteModel(
 
     private fun generateAccentColorName(index: Int) = "accent-$index"
 
-    private fun Color.rotateUntil(colorName: ColorName): ProposedColor {
+    private fun Color.rotateUntil(colorName: ColorName): ProposedColor? {
+        var rotationCounter = MAX_COUNTER // prevent endless looping
         var color = rotate(GOLDEN_ANGLE)
-        while (color.colorName() != colorName) {
+        while (color.colorName() != colorName && rotationCounter-- > 0) {
             color = color.rotate(GOLDEN_ANGLE)
         }
-        return ProposedColor(color = color, colorName = colorName)
+        if (rotationCounter > 0)
+            return ProposedColor(color = color, colorName = colorName)
+        return null
     }
 
     fun setPrimaryColor(primaryColor: Color, resetAccentColors: Boolean) =
@@ -113,6 +118,7 @@ data class PaletteModel(
     // TODO: Add check that accent colors are different enough
 
     companion object {
+        private const val MAX_COUNTER = 300
         const val ACCENT_COLOR_SEED_INIT = 1
         private const val PRIMARY_MIN_SATURATION = 0.3
         private const val NEUTRAL_MAX_SATURATION = 0.15
@@ -161,6 +167,7 @@ data class PaletteModel(
                 accentColors = accentHexList.let { it.mapNotNull { hex -> Color.hex(hex) } },
                 accentNames = accentNames,
                 accentColorSeed = accentSeed,
+                usePredefinedShades = true, // TODO
             )
         }
     }

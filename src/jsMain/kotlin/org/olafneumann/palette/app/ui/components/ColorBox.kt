@@ -3,19 +3,23 @@ package org.olafneumann.palette.app.ui.components
 import dev.fritz2.core.Handler
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.id
-import dev.fritz2.core.title
 import kotlinx.coroutines.flow.map
+import org.olafneumann.palette.app.npm.flip
+import org.olafneumann.palette.app.npm.offset
+import org.olafneumann.palette.app.npm.shift
+import org.olafneumann.palette.app.utils.IdGenerator
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ShadeList
 import org.olafneumann.palette.colors.fittingFontColor
 
 fun RenderContext.colorDisplay(shadeList: ShadeList, vertical: Boolean = false, handler: Handler<Color>? = null) =
     div("grid grid-cols-5 gap-3") {
-        val classListFirst = listOf(if (vertical) "col-span-2 h-12" else "col-span-full h-16 lg:h-32")
-        val classListSecond = listOf(if (vertical) "col-span-3" else "col-span-full")
+        val classListFirst = listOf(if (vertical) "col-span-full sm:col-span-2 h-12" else "col-span-full h-16 lg:h-32")
+        val classListSecond = listOf(if (vertical) "col-span-full sm:col-span-3" else "col-span-full")
         div("w-full") {
             classList(classListFirst)
             colorBox(
+                type = ColorBoxType.Big,
                 color = shadeList.baseColor,
                 textColor = shadeList.baseColor.fittingFontColor(
                     light = shadeList.lightestColor,
@@ -45,6 +49,7 @@ fun RenderContext.colorList(
         className("flex flex-row justify-around justify-items-center")
         colors.forEach { color ->
             colorBox(
+                type = ColorBoxType.Small,
                 width = width,
                 height = height,
                 color = color.color,
@@ -63,13 +68,20 @@ fun RenderContext.colorList(
     div {
         className("flex flex-row justify-around justify-items-center")
         colors.forEach { color ->
-            colorBox(width = width, height = height, color = color)
+            colorBox(type = ColorBoxType.Title, width = width, height = height, color = color)
         }
     }
 
+private fun <T> MutableList<T>.addAll(vararg items: T) =
+    addAll(items)
+
+enum class ColorBoxType {
+    Big, Small, Title, Button
+}
+
 @Suppress("LongParameterList")
 fun RenderContext.colorBox(
-    id: String? = null,
+    type: ColorBoxType,
     color: Color,
     textColor: Color? = null,
     textToRender: String? = null,
@@ -78,37 +90,45 @@ fun RenderContext.colorBox(
     handler: Handler<Color>? = null,
 ) =
     div {
-        val bigBox = width == null && height == null
         val colorHex = color.hex()
         val textHex = textColor?.hex()
 
         val outerClasses = mutableListOf("on-title-font", "font-thin", "transition-all")
-        if (bigBox) {
-            outerClasses.add("rounded-lg")
-            outerClasses.add("shadow-xl")
-            outerClasses.add("h-full")
-        } else {
-            outerClasses.add("flex-auto")
-            outerClasses.add("rounded")
-            outerClasses.add("border")
-            outerClasses.add("border-slate-200")
-            outerClasses.add("shadow-inner")
-            outerClasses.add("mx-1")
-            outerClasses.add("first:ms-0")
-            outerClasses.add("last:me-0")
-            outerClasses.add("group")
-            outerClasses.add("text-xs")
+        when (type) {
+            ColorBoxType.Big -> {
+                outerClasses.addAll(
+                    "rounded-lg",
+                    "shadow-xl",
+                    "h-full"
+                )
+            }
+            ColorBoxType.Button -> {
+                outerClasses.addAll(
+                    "rounded-lg",
+                    "shadow",
+                    "h-full"
+                )
+            }
+            else -> {
+                outerClasses.addAll(
+                    "flex-auto",
+                    "rounded",
+                    "border",
+                    "border-slate-200",
+                    "shadow-inner",
+                    "mx-1",
+                    "first:ms-0",
+                    "last:me-0"
+                )
+            }
         }
-        /*if (handler != null) {
-            outerClasses.add("hover:scale-105")
-        }*/
         width?.let { outerClasses.add(it) }
         height?.let { outerClasses.add(it) }
         classList(outerClasses)
-        //inlineStyle("${width.css("width", "rem")}${height.css("height", "rem")}")
         div {
+            val id = IdGenerator.next
+            id(id)
             val innerClasses = mutableListOf(
-                "shadow-inner",
                 "w-full",
                 "h-full",
                 "flex",
@@ -116,23 +136,41 @@ fun RenderContext.colorBox(
                 "justify-center",
                 "content-center"
             )
-            if (bigBox) {
-                innerClasses.add("rounded-lg")
-            } else {
-                innerClasses.add("rounded")
-                innerClasses.add("*:hidden")
+            when (type) {
+                ColorBoxType.Big -> {
+                    innerClasses.addAll("shadow-inner", "rounded-lg")
+                }
+                ColorBoxType.Button -> {
+                    innerClasses.addAll("shadow", "rounded")
+                }
+                else -> {
+                    innerClasses.addAll("shadow-inner", "rounded")
+                }
             }
             classList(innerClasses)
 
             inlineStyle("background-color:$colorHex;${textHex.css("color")};")
 
-            id?.let { id(it) }
-            title(colorHex)
+            //title(colorHex)
 
-            textHex?.let {
-                p("group-hover:block") {
+            if (type == ColorBoxType.Big || textToRender != null) {
+                textHex?.let {
                     +(textToRender?.replace("{{hex}}", colorHex) ?: colorHex)
                 }
+            } else if (type == ColorBoxType.Small) {
+                val floaterId = IdGenerator.next
+                div("hidden text-slate-900 bg-slate-100 border-slate-400 px-4 py-2 border rounded-xl") {
+                    id(floaterId)
+                    +colorHex
+                }
+                val floater = Floater(
+                    referenceElementId = id,
+                    floatingElementId = floaterId,
+                    options = Options(
+                        middleware = arrayOf(offset(1), flip(), shift()),
+                    )
+                )
+                floater.install(inHtmlTag = this, forType = FloaterEventType.MouseOver)
             }
         }
 

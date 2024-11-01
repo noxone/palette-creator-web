@@ -17,7 +17,8 @@ fun RenderContext.warningToast(text: String, maxWidth: Boolean = false, closeHan
         div {
             classList(
                 listOf(
-                    "inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-500 bg-orange-200 rounded-lg",
+                    "inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg",
+                    "text-orange-500 bg-orange-200",
                     //"dark:bg-orange-700 dark:text-orange-200"
                 )
             )
@@ -31,7 +32,8 @@ fun RenderContext.warningToast(text: String, maxWidth: Boolean = false, closeHan
             button {
                 classList(
                     listOf(
-                        "ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8",
+                        "ms-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8",
+                        "bg-white text-gray-400",
                         "hover:text-gray-900 hover:bg-gray-100",
                         //"focus:ring-2 focus:ring-gray-300",
                         //"dark:text-gray-500 dark:bg-gray-800",

@@ -12,13 +12,15 @@ enum class ColorName(val from: Double, val to: Double) {
     Purple(from = 252.0, to = 306.0);
 
     companion object {
+        private const val MAX_DEGREES = 360.0
+
         private fun into360(value: Double): Double {
             var out = value
             while (out < 0.0) {
-                out += 360.0
+                out += MAX_DEGREES
             }
             while (out > 360.0) {
-                out -= 360.0
+                out -= MAX_DEGREES
             }
             return out
         }
