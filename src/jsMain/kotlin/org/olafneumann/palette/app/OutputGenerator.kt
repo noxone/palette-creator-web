@@ -31,7 +31,7 @@ interface OutputGenerator {
         private fun ShadeList.generateRgbDescription(): String =
             "[$name]\n" +
                     "base color: " + baseColor.hex() + "\n" +
-                    shadedColors.joinToString(separator = "\n") { "${(it.shade * 1000).toInt()} : ${it.color.hex()}" } + "\n"
+                    shadedColors.joinToString(separator = "\n") { "${it.intShade} : ${it.color.hex()}" } + "\n"
     }
 
     private class CssGenerator : OutputGenerator {
@@ -88,7 +88,13 @@ interface OutputGenerator {
             model.getShadeLists().joinToString(separator = ",\n") { it.generateTailwindNumbers() }
 
         private fun ShadeList.generateTailwindNumbers(): String =
-            "\t\t'$name': {\n${shadedColors.joinToString(separator = ",\n") { "\t\t\t${(it.intShade)}: '${it.color.hex()}'" }}\n\t\t}"
+            "\t\t'$name': {\n" +
+                    "${
+                        shadedColors.joinToString(separator = ",\n") {
+                            "\t\t\t${(it.intShade)}: '${it.color.hex()}'"
+                        }
+                    }\n" +
+                    "\t\t}"
     }
 
     fun startDownload(model: PaletteModel) {
@@ -142,7 +148,6 @@ interface OutputGenerator {
                 }
         }
 
-        // TODO: Move reference to Blob to JS-part of code
         private fun String.toBlob(): Blob = Blob(arrayOf(encodeToByteArray()))
     }
 }

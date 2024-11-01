@@ -27,6 +27,7 @@ data class ToastConfig(
     val message: String,
 )
 
+@Suppress("LongParameterList")
 fun RenderContext.section(
     number: Int,
     title: String,

@@ -15,9 +15,9 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.npm.FloaterEventType
-import org.olafneumann.palette.app.npm.Options
-import org.olafneumann.palette.app.npm.Placement
+import org.olafneumann.palette.app.ui.components.FloaterEventType
+import org.olafneumann.palette.app.ui.components.Options
+import org.olafneumann.palette.app.ui.components.Placement
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
 import org.olafneumann.palette.app.ui.components.ColorBoxType
@@ -52,6 +52,8 @@ private const val HEADER_ID = "on_header"
 private const val SHADES_MIN = 5
 private const val SHADES_MAX = 15
 
+private const val MAX_SCREEN_WIDTH = 1536
+
 fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
     parse(URL(document.URL).searchParams.toMap())
 
@@ -59,10 +61,10 @@ fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
 
 @Suppress("LongMethod")
 fun main() {
-    val colorCountStore = object : RootStore<Int>(min(1536, window.innerWidth) / COLOR_COUNT_DIV, job = Job()) {
+    val colorCountStore = object : RootStore<Int>(min(MAX_SCREEN_WIDTH, window.innerWidth) / COLOR_COUNT_DIV, job = Job()) {
         val setSize: Handler<Event> = handle { _: Int, _: Event ->
             val element = document.getElementById(HEADER_ID)
-            val width = min(1536, element?.clientWidth ?: 1536)
+            val width = min(MAX_SCREEN_WIDTH, element?.clientWidth ?: MAX_SCREEN_WIDTH)
             width / COLOR_COUNT_DIV
         }
     }

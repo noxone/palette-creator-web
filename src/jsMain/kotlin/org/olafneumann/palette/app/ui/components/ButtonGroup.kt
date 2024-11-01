@@ -10,9 +10,6 @@ import dev.fritz2.core.value
 import dev.fritz2.core.values
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.npm.Floater
-import org.olafneumann.palette.app.npm.FloaterEventType
-import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.utils.IdGenerator
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.MouseEvent
@@ -134,7 +131,8 @@ private fun RenderContext.createFloater(id: String, content: (HtmlTag<HTMLDivEle
         div {
             classList(
                 listOf(
-                    "shadow-xl z-10 inline-block w-48 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm ",
+                    "shadow-xl z-10 inline-block w-48 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg",
+                    "transition-opacity duration-300"
                     //"dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800"
                 )
             )

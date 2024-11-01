@@ -1,4 +1,4 @@
-package org.olafneumann.palette.app.npm
+package org.olafneumann.palette.app.ui.components
 
 import dev.fritz2.core.Handler
 import dev.fritz2.core.HtmlTag
@@ -7,10 +7,17 @@ import dev.fritz2.core.SimpleHandler
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import org.olafneumann.palette.app.npm.Middleware
+import org.olafneumann.palette.app.npm.computePosition
+import org.olafneumann.palette.app.npm.flip
+import org.olafneumann.palette.app.npm.offset
+import org.olafneumann.palette.app.npm.shift
 import org.olafneumann.palette.app.utils.toJson
 import org.w3c.dom.HTMLElement
 
+@Suppress("UnusedPrivateProperty")
 private const val KEYCODE_ESCAPE = 0x0001
 private const val DEFAULT_OFFSET = 5
 
@@ -65,9 +72,15 @@ class Floater(
     private val backgroundElementId: String? = null,
     private val options: Options = Options(),
 ) {
-    private val referenceElement: HTMLElement by lazy { document.querySelector("#$referenceElementId") as HTMLElement }
-    private val floatingElement: HTMLElement by lazy { document.querySelector("#$floatingElementId") as HTMLElement }
-    private val backgroundElement: HTMLElement? by lazy { document.querySelector("#$backgroundElementId") as? HTMLElement }
+    private val referenceElement: HTMLElement by lazy {
+        document.querySelector("#$referenceElementId") as HTMLElement
+    }
+    private val floatingElement: HTMLElement by lazy {
+        document.querySelector("#$floatingElementId") as HTMLElement
+    }
+    private val backgroundElement: HTMLElement? by lazy {
+        document.querySelector("#$backgroundElementId") as? HTMLElement
+    }
 
     private val floaterStore = FloaterStore()
 
@@ -155,7 +168,7 @@ class Floater(
     private fun HtmlTag<*>.installForClick() {
         clicks.map { true } handledBy floaterStore.toggle
         blurs.map { false } handledBy floaterStore.update
-        // TODO: keydowns.filter { it.keyCode == KEYCODE_ESCAPE }.map { false } handledBy floaterStore.update
+        // TODO keydowns.filter { it.keyCode == KEYCODE_ESCAPE }.map { false } handledBy floaterStore.update
     }
 
     companion object {

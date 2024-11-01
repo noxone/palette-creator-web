@@ -4,9 +4,6 @@ import dev.fritz2.core.Handler
 import dev.fritz2.core.RenderContext
 import dev.fritz2.core.id
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.npm.Floater
-import org.olafneumann.palette.app.npm.FloaterEventType
-import org.olafneumann.palette.app.npm.Options
 import org.olafneumann.palette.app.npm.flip
 import org.olafneumann.palette.app.npm.offset
 import org.olafneumann.palette.app.npm.shift

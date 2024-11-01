@@ -4,8 +4,10 @@ import org.olafneumann.palette.colorful.Color
 import kotlin.random.Random
 
 object ColorGenerator {
+    private const val MAX_DEGREES = 360.0
+
      fun randomPrimary(): Color = Color.hsluv(
-        h = Random.nextDouble() * 360,
+        h = Random.nextDouble() * MAX_DEGREES,
         s = 0.5 + 0.5 * Random.nextDouble(),
         l = 0.5 + 0.35 * Random.nextDouble()
     )
@@ -19,7 +21,7 @@ object ColorGenerator {
     fun randomNeutralWarm(): Color = randomNeutral(ColorName.Red, ColorName.Purple, ColorName.Orange, ColorName.Yellow)
 
     fun randomNeutral(vararg allowedColorNames: ColorName): Color {
-        val nextH = { Random.nextDouble() * 360 }
+        val nextH = { Random.nextDouble() * MAX_DEGREES }
         var h = nextH()
         if (allowedColorNames.isNotEmpty()) {
             while (allowedColorNames.none { ColorName.fromDegree(h) == it }) {
