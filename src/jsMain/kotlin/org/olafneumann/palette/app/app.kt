@@ -32,6 +32,7 @@ import org.olafneumann.palette.app.ui.components.iconDownload
 import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
 import org.olafneumann.palette.app.ui.components.section
+import org.olafneumann.palette.app.ui.components.tableRow
 import org.olafneumann.palette.app.utils.copyToClipboard
 import org.olafneumann.palette.app.utils.toCurrentWindowLocation
 import org.olafneumann.palette.app.utils.toMap
@@ -53,6 +54,8 @@ private const val SHADES_MAX = 15
 
 fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
     parse(URL(document.URL).searchParams.toMap())
+
+// TODO: (bg|text|border)-(?!color|center|none|primary)[a-z]{4,}
 
 @Suppress("LongMethod")
 fun main() {
@@ -183,6 +186,15 @@ fun main() {
             }
         }
 
+        div("fixed top-0 left-0 right-0") {
+            p("sm:hidden") { +"xs" }
+            p("hidden sm:block md:hidden") { +"sm" }
+            p("hidden md:block lg:hidden") { +"md" }
+            p("hidden lg:block xl:hidden") { +"lg" }
+            p("hidden xl:block 2xl:hidden") { +"xl" }
+            p("hidden 2xl:block") { +"2xl" }
+        }
+
         section(
             number = 1,
             title = "Primary Color",
@@ -283,7 +295,7 @@ fun main() {
                 .renderEach(idProvider = {
                     "accent_color_${it.name}_${it.shadedColors.size}"
                 }) { shadeList ->
-                    div("first:border-t last:border-b first:rounded-t-xl last:rounded-b-xl even:bg-slate-100 border-x group/buttons grid grid-cols-12 p-2 gap-4") {
+                    tableRow("group/buttons") {
                         div("col-span-3 flex justify-between") {
                             div("place-self-center") {
                                 +shadeList.name
@@ -319,33 +331,36 @@ fun main() {
             number = 4,
             title = "Options",
         ) {
-            div("grid grid-cols-5 gap-4") {
-                div("col-span-1") {
-                    +"Include base color"
-                }
-                div("col-span-4") {
-                    checkbox(
-                        value = modelStore.data.map { it.enforcePrimaryColorInShades },
-                        handler = modelStore.setPrimaryColorEnforcedInShades,
-                        label = "Make sure, the primary color is part of the generated shades."
-                    )
-                }
-
-                div("col-span-1") {
-                    +"Shade count"
-                }
-                div("col-span-4 flex justify-between gap-4") {
-                    label("block mb-2 text-sm text-gray-900") {
-                        `for`("shade-count")
-                        modelStore.data.map { it.shadeCount }.renderText(into = this)
+            div {
+                tableRow("grid grid-cols-5 gap-4") {
+                    div("col-span-1") {
+                        +"Include base color"
                     }
-                    input("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer place-self-center") {
-                        id("shade-count")
-                        type("range")
-                        min(SHADES_MIN.toString())
-                        max(SHADES_MAX.toString())
-                        value(modelStore.data.map { it.shadeCount.toString() })
-                        changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
+                    div("col-span-4") {
+                        checkbox(
+                            value = modelStore.data.map { it.enforcePrimaryColorInShades },
+                            handler = modelStore.setPrimaryColorEnforcedInShades,
+                            label = "Make sure, the primary color is part of the generated shades."
+                        )
+                    }
+                }
+                tableRow("grid grid-cols-5 gap-4") {
+                    div("col-span-1") {
+                        +"Shade count"
+                    }
+                    div("col-span-4 flex justify-between gap-4") {
+                        label("block mb-2 text-sm text-gray-900") {
+                            `for`("shade-count")
+                            modelStore.data.map { it.shadeCount }.renderText(into = this)
+                        }
+                        input("w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer place-self-center") {
+                            id("shade-count")
+                            type("range")
+                            min(SHADES_MIN.toString())
+                            max(SHADES_MAX.toString())
+                            value(modelStore.data.map { it.shadeCount.toString() })
+                            changes.map { it.target.unsafeCast<HTMLInputElement>().value.toInt() } handledBy modelStore.updateShadeCount
+                        }
                     }
                 }
             }
@@ -358,7 +373,7 @@ fun main() {
             p("mb-3") { +"The following download options prepare the colors in certain ways that you might need." }
             div {
                 for (generator in OutputGenerator.allGenerators) {
-                    div("grid grid-cols-12 gap-4 p-2 first:rounded-t-xl last:rounded-b-xl first:border-t last:border-b border-s border-e even:bg-slate-100") {
+                    tableRow {
                         div("col-span-2") {
                             button(
                                 Button(
@@ -388,3 +403,4 @@ fun main() {
     (document.getElementById("on_footer") as? HTMLElement)
         ?.style?.display = "block"
 }
+
