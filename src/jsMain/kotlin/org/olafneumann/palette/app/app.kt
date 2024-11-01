@@ -299,27 +299,26 @@ fun main() {
                     "accent_color_${it.name}_${it.shadedColors.size}"
                 }) { shadeList ->
                     tableRow("group/buttons") {
-                        div("col-span-3 flex justify-between") {
+                        div("col-span-full lg:col-span-4 xl:col-span-3 flex justify-between") {
                             div("place-self-center") {
                                 +shadeList.name
                             }
 
                             div("place-self-center") {
                                 buttonGroup(
+                                    classes = listOf("invisible group-hover/buttons:visible"),
                                     Button(
-                                        customClass = "hidden group-hover/buttons:inline-block",
                                         icon = { iconEdit() },
                                         textHandler = modelStore.renameAccentColor,
                                         stringMapper = { shadeList.name }
                                     ), Button(
-                                        customClass = "hidden group-hover/buttons:inline-block",
                                         icon = { iconTrash() },
                                         textHandler = modelStore.removeAccentColor,
                                         stringMapper = { shadeList.name }
                                     ))
                             }
                         }
-                        div("col-span-9") {
+                        div("col-span-full lg:col-span-8 xl:col-span-9") {
                             colorDisplay(
                                 shadeList = shadeList,
                                 vertical = true,
@@ -335,11 +334,11 @@ fun main() {
             title = "Options",
         ) {
             div {
-                tableRow("grid grid-cols-5 gap-4") {
-                    div("col-span-1") {
+                tableRow("grid sm:grid-cols-7 lg:grid-cols-5 ") {
+                    div("col-span-full sm:col-span-2 lg:col-span-1") {
                         +"Include base color"
                     }
-                    div("col-span-4") {
+                    div("col-span-full sm:col-span-5 lg:col-span-4") {
                         checkbox(
                             value = modelStore.data.map { it.enforcePrimaryColorInShades },
                             handler = modelStore.setPrimaryColorEnforcedInShades,
@@ -348,11 +347,11 @@ fun main() {
                         )
                     }
                 }
-                /*tableRow("grid grid-cols-5 gap-4") {
-                    div("col-span-1") {
+                /*tableRow("grid sm:grid-cols-7 lg:grid-cols-5") {
+                    div("col-span-full sm:col-span-2 lg:col-span-1") {
                         +"Predefined shades"
                     }
-                    div("col-span-4") {
+                    div("col-span-full sm:col-span-5 lg:col-span-4") {
                         checkbox(
                             value = modelStore.data.map { it.usePredefinedShades },
                             handler = modelStore.setUsePredefinedShades,
@@ -361,11 +360,11 @@ fun main() {
                         )
                     }
                 }*/
-                tableRow("grid grid-cols-5 gap-4") {
-                    div("col-span-1") {
+                tableRow("grid sm:grid-cols-7 lg:grid-cols-5") {
+                    div("col-span-full sm:col-span-2 lg:col-span-1") {
                         +"Shade count"
                     }
-                    div("col-span-4 flex justify-between gap-4") {
+                    div("col-span-full sm:col-span-5 lg:col-span-4 flex justify-between gap-4") {
                         label("block mb-2 text-sm text-gray-900") {
                             `for`("shade-count")
                             modelStore.data.map { it.shadeCount }.renderText(into = this)
@@ -391,7 +390,7 @@ fun main() {
             div {
                 for (generator in OutputGenerator.allGenerators) {
                     tableRow {
-                        div("col-span-2") {
+                        div("col-span-full sm:col-span-4 lg:col-span-3 2xl:col-span-2 place-self-center w-full") {
                             button(
                                 Button(
                                     customClass = "w-full",
@@ -401,13 +400,13 @@ fun main() {
                                 )
                             )
                         }
-                        div("col-span-10 place-self-center w-full") {
+                        div("col-span-full sm:col-span-8 lg:col-span-9 2xl:col-span-10 place-self-center w-full font-extralight sm:font-light") {
                             +generator.description
                         }
                     }
                 }
             }
-            p("mt-3 text-sm text-slate-600") {
+            p("mt-3 text-sm font-extralight text-slate-600") {
                 +"If you are missing a download functionality or maybe some IDE integration, please open a "
                 a("hover:underline hover:text-blue-700") {
                     +"Github issue"

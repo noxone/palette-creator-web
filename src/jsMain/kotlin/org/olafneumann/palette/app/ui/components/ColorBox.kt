@@ -17,8 +17,8 @@ import org.olafneumann.palette.colors.fittingFontColor
 
 fun RenderContext.colorDisplay(shadeList: ShadeList, vertical: Boolean = false, handler: Handler<Color>? = null) =
     div("grid grid-cols-5 gap-3") {
-        val classListFirst = listOf(if (vertical) "col-span-2 h-12" else "col-span-full h-16 lg:h-32")
-        val classListSecond = listOf(if (vertical) "col-span-3" else "col-span-full")
+        val classListFirst = listOf(if (vertical) "col-span-full sm:col-span-2 h-12" else "col-span-full h-16 lg:h-32")
+        val classListSecond = listOf(if (vertical) "col-span-full sm:col-span-3" else "col-span-full")
         div("w-full") {
             classList(classListFirst)
             colorBox(

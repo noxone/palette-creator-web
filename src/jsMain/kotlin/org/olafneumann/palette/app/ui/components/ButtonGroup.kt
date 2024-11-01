@@ -143,11 +143,12 @@ private fun RenderContext.createFloater(id: String, content: (HtmlTag<HTMLDivEle
         }
     }
 
-fun RenderContext.buttonGroup(vararg buttons: Button) =
-    buttonGroup(buttons = buttons.asList())
+fun RenderContext.buttonGroup(classes: List<String> = emptyList(), vararg buttons: Button) =
+    buttonGroup(classes = classes, buttons = buttons.asList())
 
-fun RenderContext.buttonGroup(buttons: Collection<Button>) =
+fun RenderContext.buttonGroup(classes: List<String> = emptyList(), buttons: Collection<Button>) =
     div {
+        classList(classes)
         div {
             className("inline-flex shadow rounded-lg *:shadow-none")
 
