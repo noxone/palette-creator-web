@@ -161,6 +161,10 @@ fun main() {
         }
     }
 
+    val touchStore = object : RootStore<Any>("touch", job = Job()) {
+        val doNothing: Handler<Any> = handle { model, _ -> model }
+    }
+
     render(selector = "#on_main") {
         Window.resizes handledBy colorCountStore.setSize
 
@@ -189,14 +193,14 @@ fun main() {
             }
         }
 
-        div("fixed top-0 left-0 right-0") {
+        /*div("fixed top-0 left-0 right-0") {
             p("sm:hidden") { +"xs" }
             p("hidden sm:block md:hidden") { +"sm" }
             p("hidden md:block lg:hidden") { +"md" }
             p("hidden lg:block xl:hidden") { +"lg" }
             p("hidden xl:block 2xl:hidden") { +"xl" }
             p("hidden 2xl:block") { +"2xl" }
-        }
+        }*/
 
         section(
             number = 1,
@@ -299,6 +303,7 @@ fun main() {
                     "accent_color_${it.name}_${it.shadedColors.size}"
                 }) { shadeList ->
                     tableRow("group/buttons") {
+                        clicks handledBy touchStore.doNothing
                         div("col-span-full lg:col-span-4 xl:col-span-3 flex justify-between") {
                             div("place-self-center") {
                                 +shadeList.name
