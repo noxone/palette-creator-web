@@ -13,6 +13,7 @@ data class PaletteModel(
     val shadeCount: Int,
     val primaryColor: Color,
     val enforcePrimaryColorInShades: Boolean,
+    val usePredefinedShades: Boolean,
     val accentColorSeed: Int = ACCENT_COLOR_SEED_INIT,
     val neutralColor: Color,
     private val accentColors: List<Color>,
@@ -59,7 +60,7 @@ data class PaletteModel(
     val proposedAccentColors = ColorName.entries
             .mapNotNull { primaryColor.rotateUntil(it) }
             .filter { pac -> !accentColors.contains(pac.color) }
-    
+
     private val proposedAccentColorName by lazy {
         var counter = accentColors.size
         var name: String
@@ -166,6 +167,7 @@ data class PaletteModel(
                 accentColors = accentHexList.let { it.mapNotNull { hex -> Color.hex(hex) } },
                 accentNames = accentNames,
                 accentColorSeed = accentSeed,
+                usePredefinedShades = true, // TODO
             )
         }
     }

@@ -105,6 +105,9 @@ fun main() {
         val setPrimaryColorEnforcedInShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
             model.copy(enforcePrimaryColorInShades = action)
         }
+        val setUsePredefinedShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
+            model.copy(usePredefinedShades = action)
+        }
         val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
             model.setPrimaryColor(
                 primaryColor = ColorGenerator.randomPrimary(),
@@ -340,10 +343,24 @@ fun main() {
                         checkbox(
                             value = modelStore.data.map { it.enforcePrimaryColorInShades },
                             handler = modelStore.setPrimaryColorEnforcedInShades,
-                            label = "Make sure, the primary color is part of the generated shades."
+                            label = "Make sure, the primary color is part of the generated shades.",
+                            explanation = "If checked, the selected primary, neutral or accent color will explicitly be part of the list of shades. If unchecked, we will just use the hue and saturation and adjust the luminance accordingly.",
                         )
                     }
                 }
+                /*tableRow("grid grid-cols-5 gap-4") {
+                    div("col-span-1") {
+                        +"Predefined shades"
+                    }
+                    div("col-span-4") {
+                        checkbox(
+                            value = modelStore.data.map { it.usePredefinedShades },
+                            handler = modelStore.setUsePredefinedShades,
+                            label = "Use predefined shades",
+                            explanation = "When checked, we will use predefined shades for each color. If unchecked we will simply distribute the shades equally across the all luminance levels."
+                        )
+                    }
+                }*/
                 tableRow("grid grid-cols-5 gap-4") {
                     div("col-span-1") {
                         +"Shade count"

@@ -13,13 +13,19 @@ import org.olafneumann.palette.app.utils.IdGenerator
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLLabelElement
 
-fun RenderContext.checkbox(value: Flow<Boolean>, handler: Handler<Boolean>? = null, label: String) =
-    checkbox(value = value, handler = handler) { +label }
+fun RenderContext.checkbox(
+    value: Flow<Boolean>,
+    handler: Handler<Boolean>? = null,
+    label: String,
+    explanation: String? = null,
+) =
+    checkbox(value = value, handler = handler, label = { +label }, explanation = explanation)
 
 fun RenderContext.checkbox(
     value: Flow<Boolean>,
     handler: Handler<Boolean>? = null,
     label: HtmlTag<HTMLLabelElement>.() -> Unit,
+    explanation: String? = null,
 ) =
     div {
         val id = IdGenerator.next
@@ -43,8 +49,15 @@ fun RenderContext.checkbox(
                 }
             }
         }
-        label("ms-2 text-gray-900") {
-            `for`(id)
-            label()
+        div("ms-2") {
+            label("text-gray-900") {
+                `for`(id)
+                label()
+            }
+            explanation?.let {
+                p("text-sm text-slate-600") {
+                    +explanation
+                }
+            }
         }
     }
