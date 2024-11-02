@@ -14,13 +14,14 @@ import dev.fritz2.core.value
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.ui.components.FloaterEventType
-import org.olafneumann.palette.app.ui.components.Options
-import org.olafneumann.palette.app.ui.components.Placement
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
 import org.olafneumann.palette.app.ui.components.ColorBoxType
+import org.olafneumann.palette.app.ui.components.FloaterEventType
+import org.olafneumann.palette.app.ui.components.Options
+import org.olafneumann.palette.app.ui.components.Placement
 import org.olafneumann.palette.app.ui.components.ToastConfig
 import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
@@ -42,17 +43,8 @@ import org.olafneumann.palette.colors.fittingFontColor
 import org.olafneumann.palette.model.PaletteModel
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
 import kotlin.math.min
-
-private const val COLOR_COUNT_DIV = 48
-private const val HEADER_ID = "on_header"
-private const val SHADES_MIN = 5
-private const val SHADES_MAX = 15
-
-private const val MAX_SCREEN_WIDTH = 1536
 
 fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
     parse(URL(document.URL).searchParams.toMap())
@@ -61,12 +53,21 @@ fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
 
 @Suppress("LongMethod")
 fun main() {
-    val colorCountStore = object : RootStore<Int>(min(MAX_SCREEN_WIDTH, window.innerWidth) / COLOR_COUNT_DIV, job = Job()) {
-        val setSize: Handler<Event> = handle { _: Int, _: Event ->
-            val element = document.getElementById(HEADER_ID)
-            val width = min(MAX_SCREEN_WIDTH, element?.clientWidth ?: MAX_SCREEN_WIDTH)
-            width / COLOR_COUNT_DIV
+    val colorCountStore = object : RootStore<Int>(1, job = Job()) {
+        private val HEADER_COLOR_COUNT_DIV = 48
+
+        private val numberOfBoxes: Int
+            get() {
+                val element = document.getElementById(HEADER_ID)
+                val width = min(MAX_SCREEN_WIDTH, element?.clientWidth ?: MAX_SCREEN_WIDTH)
+                return width / HEADER_COLOR_COUNT_DIV
+            }
+
+        init {
+            window.setTimeout({ flowOf(numberOfBoxes) handledBy update }, 1)
         }
+
+        val setSize: Handler<Unit> = handle { _: Int -> numberOfBoxes }
     }
     val modelStore = object :
         RootStore<PaletteModel>(
@@ -187,22 +188,13 @@ fun main() {
                     height = "h-10",
                     colors = (0..<colorCount).map {
                         Color.hsluv(
-                            h = 290.0 / colorCount * it,
-                            s = 0.1 + 0.85 / colorCount * it,
-                            l = 0.7
+                            h = HEADER_TARGET_HUE / colorCount * it,
+                            s = HEADER_BASE_SATURATION + HEADER_ADD_SATURATION / colorCount * it,
+                            l = HEADER_LIGHTNESS
                         )
                     })
             }
         }
-
-        /*div("fixed top-0 left-0 right-0") {
-            p("sm:hidden") { +"xs" }
-            p("hidden sm:block md:hidden") { +"sm" }
-            p("hidden md:block lg:hidden") { +"md" }
-            p("hidden lg:block xl:hidden") { +"lg" }
-            p("hidden xl:block 2xl:hidden") { +"xl" }
-            p("hidden 2xl:block") { +"2xl" }
-        }*/
 
         section(
             number = 1,
@@ -270,10 +262,7 @@ fun main() {
                                     colorBox(
                                         type = ColorBoxType.Button,
                                         color = color.color,
-                                        textColor = color.color.fittingFontColor(
-                                            Color(1.0, 1.0, 1.0), // TODO: replace by better colors
-                                            Color(0.0, 0.0, 0.0)
-                                        ),
+                                        textColor = color.color.fittingFontColor(LIGHT_TEXT_COLOR, DARK_TEXT_COLOR),
                                         textToRender = "${color.name}: {{hex}}",
                                         handler = modelStore.addAccentColor,
                                     )
@@ -423,6 +412,8 @@ fun main() {
             }
         }
     }
+
+    // finally, show the footer
     (document.getElementById("on_footer") as? HTMLElement)
         ?.style?.display = "block"
 }
