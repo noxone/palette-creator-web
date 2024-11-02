@@ -37,7 +37,7 @@ data class Button(
     val icon: (RenderContext.() -> Unit)? = null,
     val text: String? = null,
     val value: Flow<String>? = null,
-    val clickHandler: Handler<MouseEvent>? = null,
+    val clickHandler: Handler<Unit>? = null,
     val textHandler: Handler<String>? = null,
     val floaterElementId: String? = null,
     val floaterElement: (HtmlTag<HTMLDivElement>.() -> Unit)? = null,
@@ -48,6 +48,7 @@ data class Button(
     val stringMapper: ((Any) -> String)? = null,
 )
 
+@Suppress("CyclomaticComplexMethod")
 fun RenderContext.button(button: Button, additionalClasses: List<String> = emptyList()) =
     button {
         type("button")

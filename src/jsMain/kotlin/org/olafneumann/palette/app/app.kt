@@ -111,22 +111,22 @@ fun main() {
         val setUsePredefinedShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
             model.copy(usePredefinedShades = action)
         }
-        val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizePrimaryColor: Handler<Unit> = handle { model: PaletteModel ->
             model.setPrimaryColor(
                 primaryColor = ColorGenerator.randomPrimary(),
                 resetAccentColors = checkAccentColorReset(model)
             )
         }
-        val deriveNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val deriveNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.deriveNeutral(from = model.primaryColor))
         }
-        val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizeWarmNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.randomNeutralWarm())
         }
-        val randomizeColdNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizeColdNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.randomNeutralCold())
         }
-        val randomizeNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizeNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.randomNeutral())
         }
         val addAccentColorHex: Handler<String> = handle { model: PaletteModel, hex: String ->
@@ -137,7 +137,7 @@ fun main() {
         val addAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
             model.addAccentColor(color)
         }
-        val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val addRandomAccentColor: Handler<Unit> = handle { model: PaletteModel ->
             model.addRandomAccentColor()
         }
         val removeAccentColor: Handler<String> = handle { model: PaletteModel, name ->
