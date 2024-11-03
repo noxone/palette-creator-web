@@ -1,6 +1,8 @@
 package org.olafneumann.palette.app
 
 import dev.fritz2.core.Handler
+import dev.fritz2.core.HtmlTag
+import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
 import dev.fritz2.core.`for`
@@ -14,23 +16,25 @@ import dev.fritz2.core.value
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.olafneumann.palette.app.ui.components.FloaterEventType
-import org.olafneumann.palette.app.ui.components.Options
-import org.olafneumann.palette.app.ui.components.Placement
 import org.olafneumann.palette.app.ui.components.Button
 import org.olafneumann.palette.app.ui.components.ButtonType
 import org.olafneumann.palette.app.ui.components.ColorBoxType
+import org.olafneumann.palette.app.ui.components.FloaterEventType
+import org.olafneumann.palette.app.ui.components.Options
+import org.olafneumann.palette.app.ui.components.Placement
+import org.olafneumann.palette.app.ui.components.RadioBox
 import org.olafneumann.palette.app.ui.components.ToastConfig
 import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
-import org.olafneumann.palette.app.ui.components.checkbox
 import org.olafneumann.palette.app.ui.components.colorBox
 import org.olafneumann.palette.app.ui.components.colorDisplay
 import org.olafneumann.palette.app.ui.components.colorList
 import org.olafneumann.palette.app.ui.components.iconDownload
 import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
+import org.olafneumann.palette.app.ui.components.radioBoxes
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.ui.components.tableRow
 import org.olafneumann.palette.app.utils.copyToClipboard
@@ -38,21 +42,15 @@ import org.olafneumann.palette.app.utils.toCurrentWindowLocation
 import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
+import org.olafneumann.palette.colors.ShadeType
+import org.olafneumann.palette.colors.ShadeType.Companion.toShadeType
 import org.olafneumann.palette.colors.fittingFontColor
 import org.olafneumann.palette.model.PaletteModel
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.url.URL
 import kotlin.math.min
-
-private const val COLOR_COUNT_DIV = 48
-private const val HEADER_ID = "on_header"
-private const val SHADES_MIN = 5
-private const val SHADES_MAX = 15
-
-private const val MAX_SCREEN_WIDTH = 1536
 
 fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
     parse(URL(document.URL).searchParams.toMap())
@@ -61,12 +59,21 @@ fun PaletteModel.Companion.fromCurrentLocation(): PaletteModel =
 
 @Suppress("LongMethod")
 fun main() {
-    val colorCountStore = object : RootStore<Int>(min(MAX_SCREEN_WIDTH, window.innerWidth) / COLOR_COUNT_DIV, job = Job()) {
-        val setSize: Handler<Event> = handle { _: Int, _: Event ->
-            val element = document.getElementById(HEADER_ID)
-            val width = min(MAX_SCREEN_WIDTH, element?.clientWidth ?: MAX_SCREEN_WIDTH)
-            width / COLOR_COUNT_DIV
+    val colorCountStore = object : RootStore<Int>(1, job = Job()) {
+        private val HEADER_COLOR_COUNT_DIV = 48
+
+        private val numberOfBoxes: Int
+            get() {
+                val element = document.getElementById(HEADER_ID)
+                val width = min(MAX_SCREEN_WIDTH, element?.clientWidth ?: MAX_SCREEN_WIDTH)
+                return width / HEADER_COLOR_COUNT_DIV
+            }
+
+        init {
+            window.setTimeout({ flowOf(numberOfBoxes) handledBy update }, 1)
         }
+
+        val setSize: Handler<Unit> = handle { _: Int -> numberOfBoxes }
     }
     val modelStore = object :
         RootStore<PaletteModel>(
@@ -104,28 +111,25 @@ fun main() {
                 }
                 ?: model
         }
-        val setPrimaryColorEnforcedInShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
-            model.copy(enforcePrimaryColorInShades = action)
+        val setShadeType: Handler<String> = handle { model, shadeTypeName ->
+            model.copy(shadeType = shadeTypeName.toShadeType())
         }
-        val setUsePredefinedShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
-            model.copy(usePredefinedShades = action)
-        }
-        val randomizePrimaryColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizePrimaryColor: Handler<Unit> = handle { model: PaletteModel ->
             model.setPrimaryColor(
                 primaryColor = ColorGenerator.randomPrimary(),
                 resetAccentColors = checkAccentColorReset(model)
             )
         }
-        val deriveNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val deriveNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.deriveNeutral(from = model.primaryColor))
         }
-        val randomizeWarmNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizeWarmNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.randomNeutralWarm())
         }
-        val randomizeColdNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizeColdNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.randomNeutralCold())
         }
-        val randomizeNeutralColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val randomizeNeutralColor: Handler<Unit> = handle { model: PaletteModel ->
             model.copy(neutralColor = ColorGenerator.randomNeutral())
         }
         val addAccentColorHex: Handler<String> = handle { model: PaletteModel, hex: String ->
@@ -136,7 +140,7 @@ fun main() {
         val addAccentColor: Handler<Color> = handle { model: PaletteModel, color: Color ->
             model.addAccentColor(color)
         }
-        val addRandomAccentColor: Handler<MouseEvent> = handle { model: PaletteModel, _: MouseEvent ->
+        val addRandomAccentColor: Handler<Unit> = handle { model: PaletteModel ->
             model.addRandomAccentColor()
         }
         val removeAccentColor: Handler<String> = handle { model: PaletteModel, name ->
@@ -187,22 +191,13 @@ fun main() {
                     height = "h-10",
                     colors = (0..<colorCount).map {
                         Color.hsluv(
-                            h = 290.0 / colorCount * it,
-                            s = 0.1 + 0.85 / colorCount * it,
-                            l = 0.7
+                            h = HEADER_TARGET_HUE / colorCount * it,
+                            s = HEADER_BASE_SATURATION + HEADER_ADD_SATURATION / colorCount * it,
+                            l = HEADER_LIGHTNESS
                         )
                     })
             }
         }
-
-        /*div("fixed top-0 left-0 right-0") {
-            p("sm:hidden") { +"xs" }
-            p("hidden sm:block md:hidden") { +"sm" }
-            p("hidden md:block lg:hidden") { +"md" }
-            p("hidden lg:block xl:hidden") { +"lg" }
-            p("hidden xl:block 2xl:hidden") { +"xl" }
-            p("hidden 2xl:block") { +"2xl" }
-        }*/
 
         section(
             number = 1,
@@ -217,7 +212,7 @@ fun main() {
                     textHandler = modelStore.setPrimaryColor
                 ),
                 // TODO: Button(text = "Enter hex RGB"),
-                Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
+                Button(text = "Use Random Color", clickHandler = modelStore.randomizePrimaryColor),
             ),
             toastConfig = ToastConfig(
                 flow = modelStore.data.map { !it.isPrimaryColorSaturationHighEnough },
@@ -238,9 +233,9 @@ fun main() {
                 """.trimMargin(),
             actions = listOf(
                 Button(text = "Derive from primary", clickHandler = modelStore.deriveNeutralColor),
-                Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
-                Button(text = "Random cold", clickHandler = modelStore.randomizeColdNeutralColor),
-                Button(text = "Completely random", clickHandler = modelStore.randomizeNeutralColor),
+                Button(text = "Randomize warm", clickHandler = modelStore.randomizeWarmNeutralColor),
+                Button(text = "Randomize cold", clickHandler = modelStore.randomizeColdNeutralColor),
+                Button(text = "Randomize freely", clickHandler = modelStore.randomizeNeutralColor),
             ),
             toastConfig = ToastConfig(
                 flow = modelStore.data.map { !it.isNeutralColorSaturationLowEnough },
@@ -262,7 +257,7 @@ fun main() {
             actions = listOf(
                 Button(
                     // TODO: Disable this button of there are not colors...
-                    text = "Derived from primary color",
+                    text = "Add derived from primary color",
                     floaterElement = {
                         modelStore.data.map { it.proposedAccentColors }
                             .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
@@ -270,10 +265,7 @@ fun main() {
                                     colorBox(
                                         type = ColorBoxType.Button,
                                         color = color.color,
-                                        textColor = color.color.fittingFontColor(
-                                            Color(1.0, 1.0, 1.0), // TODO: replace by better colors
-                                            Color(0.0, 0.0, 0.0)
-                                        ),
+                                        textColor = color.color.fittingFontColor(LIGHT_TEXT_COLOR, DARK_TEXT_COLOR),
                                         textToRender = "${color.name}: {{hex}}",
                                         handler = modelStore.addAccentColor,
                                     )
@@ -302,7 +294,7 @@ fun main() {
             }
             modelStore.data.map { it.accentColorsShadeLists }
                 .renderEach(idProvider = {
-                    "accent_color_${it.name}_${it.shadedColors.size}"
+                    "accent_color_${it.name}_${it.shadedColors.size}_${it.shadeType.name}"
                 }) { shadeList ->
                     tableRow("group/buttons") {
                         clicks handledBy touchStore.doNothing
@@ -340,38 +332,32 @@ fun main() {
             number = 4,
             title = "Options",
         ) {
-            div {
+            fun RenderContext.optionsTableRow(title: String, content: HtmlTag<HTMLDivElement>.() -> Unit) {
                 tableRow("grid sm:grid-cols-7 lg:grid-cols-5 ") {
                     div("col-span-full sm:col-span-2 lg:col-span-1") {
-                        +"Include base color"
+                        +title
                     }
                     div("col-span-full sm:col-span-5 lg:col-span-4") {
-                        checkbox(
-                            value = modelStore.data.map { it.enforcePrimaryColorInShades },
-                            handler = modelStore.setPrimaryColorEnforcedInShades,
-                            label = "Make sure, the primary color is part of the generated shades.",
-                            explanation = "If checked, the selected primary, neutral or accent color will explicitly be part of the list of shades. If unchecked, we will just use the hue and saturation and adjust the luminance accordingly.",
-                        )
+                        content()
                     }
                 }
-                /*tableRow("grid sm:grid-cols-7 lg:grid-cols-5") {
-                    div("col-span-full sm:col-span-2 lg:col-span-1") {
-                        +"Predefined shades"
-                    }
-                    div("col-span-full sm:col-span-5 lg:col-span-4") {
-                        checkbox(
-                            value = modelStore.data.map { it.usePredefinedShades },
-                            handler = modelStore.setUsePredefinedShades,
-                            label = "Use predefined shades",
-                            explanation = "When checked, we will use predefined shades for each color. If unchecked we will simply distribute the shades equally across the all luminance levels."
-                        )
-                    }
-                }*/
-                tableRow("grid sm:grid-cols-7 lg:grid-cols-5") {
-                    div("col-span-full sm:col-span-2 lg:col-span-1") {
-                        +"Shade count"
-                    }
-                    div("col-span-full sm:col-span-5 lg:col-span-4 flex justify-between gap-4") {
+            }
+            div {
+                optionsTableRow("Type of shades") {
+                    radioBoxes(
+                        value = modelStore.data.map { it.shadeType.name },
+                        handler = modelStore.setShadeType,
+                        radioboxes =
+                        ShadeType.entries.map { RadioBox(
+                            name = "ShadeType",
+                            value = it.name,
+                            text = it.title,
+                            description = it.description
+                        ) }.toTypedArray()
+                    )
+                }
+                optionsTableRow("Shade count") {
+                    div("flex justify-between gap-4") {
                         label("block mb-2 text-sm text-gray-900") {
                             `for`("shade-count")
                             modelStore.data.map { it.shadeCount }.renderText(into = this)
@@ -423,6 +409,8 @@ fun main() {
             }
         }
     }
+
+    // finally, show the footer
     (document.getElementById("on_footer") as? HTMLElement)
         ?.style?.display = "block"
 }

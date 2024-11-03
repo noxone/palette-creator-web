@@ -79,7 +79,7 @@ enum class ColorBoxType {
     Big, Small, Title, Button
 }
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod")
 fun RenderContext.colorBox(
     type: ColorBoxType,
     color: Color,

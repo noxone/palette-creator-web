@@ -27,18 +27,14 @@ fun RenderContext.checkbox(
     label: HtmlTag<HTMLLabelElement>.() -> Unit,
     explanation: String? = null,
 ) =
-    div {
+    div("flex items-start") {
         val id = IdGenerator.next
-        className("flex items-start")
-        div {
-            className("flex-items-center h-5")
+        div("flex flex-items-center h-5 pt-1") {
             input {
                 classList(
                     listOf(
-                        "w-4 h-4 border border-gray-300 rounded bg-gray-50",
-                        "focus:ring-3 focus:ring-blue-300",
-                        //"dark:bg-gray-700 dark:border-gray-600 dark:ring-offset-gray-800",
-                        //"dark:focus:ring-blue-600"
+                        "peer", "relative",
+                        "appearance-none shrink-0 w-4 h-4 rounded checked:bg-blue-500 ring-blue-500 ring-2"
                     )
                 )
                 id(id)
@@ -48,6 +44,7 @@ fun RenderContext.checkbox(
                     changes.map { event -> event.target.unsafeCast<HTMLInputElement>().checked } handledBy handler
                 }
             }
+            checkMark("hidden peer-checked:block absolute w-4 h-4 pointer-events-none text-white")
         }
         div("ms-2") {
             label("text-gray-900") {

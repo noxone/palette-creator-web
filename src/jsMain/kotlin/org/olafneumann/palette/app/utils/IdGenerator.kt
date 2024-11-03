@@ -2,7 +2,7 @@ package org.olafneumann.palette.app.utils
 
 class IdGenerator(
     private val prefix: String = "",
-    private val initialValue: Int = 0,
+    initialValue: Int = 0,
 ) {
     private var currentValue = initialValue
         get() {

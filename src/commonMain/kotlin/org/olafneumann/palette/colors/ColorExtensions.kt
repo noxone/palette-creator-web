@@ -13,3 +13,8 @@ fun Color.rotate(degrees: Double): Color {
 
 fun Color.fittingFontColor(light: Color, dark: Color): Color =
     if (hsluv().l < LIGHT_FONT_THRESHOLD) light else dark
+
+fun Color.atLightness(lightness: Double): Color {
+    val hsluv = hsluv()
+    return Color.hsluv(h = hsluv.h, s = hsluv.s, l = lightness)
+}

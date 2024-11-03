@@ -6,14 +6,15 @@ import org.olafneumann.palette.colors.ColorName
 import org.olafneumann.palette.colors.ColorName.Companion.colorName
 import org.olafneumann.palette.colors.GOLDEN_ANGLE
 import org.olafneumann.palette.colors.ShadeList
+import org.olafneumann.palette.colors.ShadeType
+import org.olafneumann.palette.colors.ShadeType.Companion.toShadeType
 import org.olafneumann.palette.colors.rotate
 
 // @Lenses
 data class PaletteModel(
     val shadeCount: Int,
+    val shadeType: ShadeType,
     val primaryColor: Color,
-    val enforcePrimaryColorInShades: Boolean,
-    val usePredefinedShades: Boolean,
     val accentColorSeed: Int = ACCENT_COLOR_SEED_INIT,
     val neutralColor: Color,
     private val accentColors: List<Color>,
@@ -35,22 +36,20 @@ data class PaletteModel(
         name = "primary",
         baseColor = primaryColor,
         shadeCount = shadeCount,
-        enforceColorInShades = enforcePrimaryColorInShades
+        shadeType = shadeType
     )
     val neutralColorShadeList = ShadeList(
         name = "neutral",
         baseColor = neutralColor,
         shadeCount = shadeCount,
-        min = 0.05,
-        max = 0.95,
-        enforceColorInShades = false
+        shadeType = shadeType
     )
     val accentColorsShadeLists = namedAccentColors.map {
         ShadeList(
             name = it.name,
             baseColor = it.color,
             shadeCount = shadeCount,
-            enforceColorInShades = enforcePrimaryColorInShades
+            shadeType = shadeType
         )
     }
 
@@ -123,7 +122,7 @@ data class PaletteModel(
         private const val PRIMARY_MIN_SATURATION = 0.3
         private const val NEUTRAL_MAX_SATURATION = 0.15
         private const val DEFAULT_SHADE_COUNT = 7
-        private const val DEFAULT_ENFORCE_PRIMARY_COLOR = true
+        private val DEFAULT_SHADE_TYPE = ShadeType.Even
 
         data class ProposedColor(
             val color: Color,
@@ -142,8 +141,14 @@ data class PaletteModel(
         private const val PARAM_ACCENTS = "accents"
         private const val PARAM_ACCENT_NAMES = "accent_names"
         private const val PARAM_ACCENT_SEED = "accent_seed"
-        private const val PARAM_ENFORCE_COLOR_IN_SHADE = "enforce_color"
+        private const val PARAM_SHADE_TYPE = "type"
         private const val PARAM_SHADE_COUNT = "count"
+
+        private fun String.emptyToNull(): String? =
+            if (isNullOrEmpty())
+                null
+            else
+                this
 
         fun parse(params: Map<String, String?>): PaletteModel {
             val primaryHex = params[PARAM_PRIMARY]
@@ -151,8 +156,7 @@ data class PaletteModel(
             val accentHexList = params[PARAM_ACCENTS]?.split(',') ?: emptyList()
             var accentNames = params[PARAM_ACCENT_NAMES]?.split(',') ?: emptyList()
             val accentSeed = params[PARAM_ACCENT_SEED]?.toIntOrNull() ?: ACCENT_COLOR_SEED_INIT
-            val enforcePrimaryColorInShades =
-                params[PARAM_ENFORCE_COLOR_IN_SHADE]?.toBoolean() ?: DEFAULT_ENFORCE_PRIMARY_COLOR
+            val shadeType = params[PARAM_SHADE_TYPE]?.emptyToNull().toShadeType(default = DEFAULT_SHADE_TYPE)
             val shadeCount = params[PARAM_SHADE_COUNT]?.toIntOrNull() ?: DEFAULT_SHADE_COUNT
 
             if (accentHexList.size != accentNames.size) {
@@ -161,13 +165,12 @@ data class PaletteModel(
 
             return PaletteModel(
                 shadeCount = shadeCount,
+                shadeType = shadeType,
                 primaryColor = primaryHex?.let { Color.hex(it) } ?: ColorGenerator.randomPrimary(),
-                enforcePrimaryColorInShades = enforcePrimaryColorInShades,
                 neutralColor = neutralHex?.let { Color.hex(it) } ?: ColorGenerator.randomNeutral(),
                 accentColors = accentHexList.let { it.mapNotNull { hex -> Color.hex(hex) } },
                 accentNames = accentNames,
                 accentColorSeed = accentSeed,
-                usePredefinedShades = true, // TODO
             )
         }
     }
@@ -180,7 +183,7 @@ data class PaletteModel(
             PARAM_ACCENT_NAMES to this.accentNames.joinToString(","),
             PARAM_ACCENT_SEED to this.accentColorSeed,
             PARAM_SHADE_COUNT to this.shadeCount,
-            PARAM_ENFORCE_COLOR_IN_SHADE to this.enforcePrimaryColorInShades,
+            PARAM_SHADE_TYPE to this.shadeType.name.lowercase(),
         )
         return map
             .map { "${it.key}=${it.value}" }
