@@ -5,6 +5,20 @@ import dev.fritz2.core.d
 import dev.fritz2.core.fill
 import dev.fritz2.core.viewBox
 
+fun RenderContext.checkMark(baseClass: String? = null) =
+    svg(baseClass = baseClass) {
+        xmlns("http://www.w3.org/2000/svg")
+        fill("none")
+        viewBox("0 0 24 24")
+        path {
+            attr("stroke", "currentColor")
+            attr("stroke-linecap", "round")
+            attr("stroke-linejoin", "round")
+            attr("stroke-width", "4")
+            d("M4 12.6111L8.92308 17.5L20 6.5")
+        }
+    }
+
 fun RenderContext.iconClose() =
     svg {
         className("h-3 w-3")
