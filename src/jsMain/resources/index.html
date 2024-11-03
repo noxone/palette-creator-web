@@ -2,7 +2,12 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="theme-color" content="#57A0CC">
+
+    <meta name="application-name" content="Shade Generator">
+    <meta name="description" content="Easily generate shades for your application.">
 
     <!-- Clarity analytics -->
     <!-- REMOVE_LINE_FOR_PUBLISHING
@@ -17,6 +22,18 @@
 
 </head>
 <body class="bg-slate-100 font-light md:container md:mx-auto text-slate-900">
+<div class="md:mt-4 px-4 py-7 md:rounded-xl shadow-xl relative text-center overflow-hidden" style="background-color: #57A0CC;" id="on_header">
+    <div class="absolute -top-4 -left-16 -translate-y-1/2 rounded-full w-96 h-96 blur-3xl mix-blend opacity z-5" style="top: 12rem; left: -3rem; background-color: #346380;"></div>
+    <div class="absolute -top-48 left-1/2 -translate-x-1/2 rounded-full w-96 h-96 blur-3xl mix-blend" style="background-color: #D0E5F8;"></div>
+
+    <div class="py-4 sm:py-6 sticky z-10">
+        <div class="on-title-font text-5xl sm:text-6xl md:text-7xl">Shade Generator</div>
+        <p>Generate shades and color palettes for your coding projects.</p>
+    </div>
+    <div id="on_shades" class="sticky">
+    </div>
+
+</div>
 <div id="on_main">
     Loading...
 </div>

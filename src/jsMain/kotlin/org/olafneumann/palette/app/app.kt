@@ -171,34 +171,23 @@ fun main() {
         val doNothing: Handler<Any> = handle { model, _ -> model }
     }
 
-    render(selector = "#on_main") {
+    render(selector = "#on_shades") {
         Window.resizes handledBy colorCountStore.setSize
-
-        div("md:mt-4 px-4 py-7 bg-orange-400 md:rounded-xl shadow-xl relative text-center") {
-            // TODO: use color 57A0CC
-            id(HEADER_ID)
-            div("py-4 sm:py-6") {
-                div("on-title-font text-5xl sm:text-6xl md:text-7xl") {
-                    +"Shade Generator"
-                }
-                p {
-                    +"Generate shades and color palettes for your coding projects."
-                }
-            }
-            colorCountStore.data.render { colorCount ->
-                colorList(
-                    width = "w-3",
-                    height = "h-10",
-                    colors = (0..<colorCount).map {
-                        Color.hsluv(
-                            h = HEADER_TARGET_HUE / colorCount * it,
-                            s = HEADER_BASE_SATURATION + HEADER_ADD_SATURATION / colorCount * it,
-                            l = HEADER_LIGHTNESS
-                        )
-                    })
-            }
+        colorCountStore.data.render { colorCount ->
+            colorList(
+                width = "w-3",
+                height = "h-10",
+                colors = (0..<colorCount).map {
+                    Color.hsluv(
+                        h = HEADER_TARGET_HUE / colorCount * it,
+                        s = HEADER_BASE_SATURATION + HEADER_ADD_SATURATION / colorCount * it,
+                        l = HEADER_LIGHTNESS
+                    )
+                })
         }
+    }
 
+    render(selector = "#on_main") {
         section(
             number = 1,
             title = "Primary Color",
