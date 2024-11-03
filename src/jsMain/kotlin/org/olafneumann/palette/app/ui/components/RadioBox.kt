@@ -1,11 +1,15 @@
 package org.olafneumann.palette.app.ui.components
 
+import dev.fritz2.core.Handler
 import dev.fritz2.core.RenderContext
+import dev.fritz2.core.checked
 import dev.fritz2.core.`for`
 import dev.fritz2.core.id
 import dev.fritz2.core.name
 import dev.fritz2.core.type
 import dev.fritz2.core.value
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.olafneumann.palette.app.utils.IdGenerator
 
 data class RadioBox(
@@ -15,15 +19,25 @@ data class RadioBox(
     val description: String? = null,
 )
 
-fun RenderContext.radioBoxes(vararg radioboxes: RadioBox) =
+fun RenderContext.radioBoxes(
+    value: Flow<String>,
+    handler: Handler<String>,
+    vararg radioboxes: RadioBox,
+) =
     div {
-        radioboxes.forEach { radioBox(radioBox = it) }
+        radioboxes.forEach { radioBox ->
+            radioBox(
+                name = radioBox.name,
+                value = radioBox.value,
+                text = radioBox.text,
+                description = radioBox.description,
+                flow = value,
+                handler = handler
+            )
+        }
     }
 
-fun RenderContext.radioBox(radioBox: RadioBox) =
-    radioBox(name = radioBox.name, value = radioBox.value, text = radioBox.text, description = radioBox.description)
-
-fun RenderContext.radioBox(name: String, value: String, text: String, description: String? = null) =
+fun RenderContext.radioBox(name: String, value: String, text: String, description: String? = null, flow: Flow<String>, handler: Handler<String>) =
     div("flex mb-2 last:mb-0") {
         val id = IdGenerator.next
         div("items-center pt-0.5") {
@@ -38,6 +52,8 @@ fun RenderContext.radioBox(name: String, value: String, text: String, descriptio
                 id(id)
                 name(name)
                 value(value)
+                changes.map { value } handledBy handler
+                checked(flow.map { it == value })
             }
         }
         div("ms-2 test-sm") {

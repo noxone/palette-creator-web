@@ -1,6 +1,8 @@
 package org.olafneumann.palette.app
 
 import dev.fritz2.core.Handler
+import dev.fritz2.core.HtmlTag
+import dev.fritz2.core.RenderContext
 import dev.fritz2.core.RootStore
 import dev.fritz2.core.Window
 import dev.fritz2.core.`for`
@@ -22,16 +24,17 @@ import org.olafneumann.palette.app.ui.components.ColorBoxType
 import org.olafneumann.palette.app.ui.components.FloaterEventType
 import org.olafneumann.palette.app.ui.components.Options
 import org.olafneumann.palette.app.ui.components.Placement
+import org.olafneumann.palette.app.ui.components.RadioBox
 import org.olafneumann.palette.app.ui.components.ToastConfig
 import org.olafneumann.palette.app.ui.components.button
 import org.olafneumann.palette.app.ui.components.buttonGroup
-import org.olafneumann.palette.app.ui.components.checkbox
 import org.olafneumann.palette.app.ui.components.colorBox
 import org.olafneumann.palette.app.ui.components.colorDisplay
 import org.olafneumann.palette.app.ui.components.colorList
 import org.olafneumann.palette.app.ui.components.iconDownload
 import org.olafneumann.palette.app.ui.components.iconEdit
 import org.olafneumann.palette.app.ui.components.iconTrash
+import org.olafneumann.palette.app.ui.components.radioBoxes
 import org.olafneumann.palette.app.ui.components.section
 import org.olafneumann.palette.app.ui.components.tableRow
 import org.olafneumann.palette.app.utils.copyToClipboard
@@ -39,8 +42,11 @@ import org.olafneumann.palette.app.utils.toCurrentWindowLocation
 import org.olafneumann.palette.app.utils.toMap
 import org.olafneumann.palette.colorful.Color
 import org.olafneumann.palette.colors.ColorGenerator
+import org.olafneumann.palette.colors.ShadeType
+import org.olafneumann.palette.colors.ShadeType.Companion.toShadeType
 import org.olafneumann.palette.colors.fittingFontColor
 import org.olafneumann.palette.model.PaletteModel
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.url.URL
@@ -105,11 +111,8 @@ fun main() {
                 }
                 ?: model
         }
-        val setPrimaryColorEnforcedInShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
-            model.copy(enforcePrimaryColorInShades = action)
-        }
-        val setUsePredefinedShades: Handler<Boolean> = handle { model: PaletteModel, action: Boolean ->
-            model.copy(usePredefinedShades = action)
+        val setShadeType: Handler<String> = handle { model, shadeTypeName ->
+            model.copy(shadeType = shadeTypeName.toShadeType())
         }
         val randomizePrimaryColor: Handler<Unit> = handle { model: PaletteModel ->
             model.setPrimaryColor(
@@ -291,7 +294,7 @@ fun main() {
             }
             modelStore.data.map { it.accentColorsShadeLists }
                 .renderEach(idProvider = {
-                    "accent_color_${it.name}_${it.shadedColors.size}"
+                    "accent_color_${it.name}_${it.shadedColors.size}_${it.shadeType.name}"
                 }) { shadeList ->
                     tableRow("group/buttons") {
                         clicks handledBy touchStore.doNothing
@@ -329,38 +332,32 @@ fun main() {
             number = 4,
             title = "Options",
         ) {
-            div {
+            fun RenderContext.optionsTableRow(title: String, content: HtmlTag<HTMLDivElement>.() -> Unit) {
                 tableRow("grid sm:grid-cols-7 lg:grid-cols-5 ") {
                     div("col-span-full sm:col-span-2 lg:col-span-1") {
-                        +"Include base color"
+                        +title
                     }
                     div("col-span-full sm:col-span-5 lg:col-span-4") {
-                        checkbox(
-                            value = modelStore.data.map { it.enforcePrimaryColorInShades },
-                            handler = modelStore.setPrimaryColorEnforcedInShades,
-                            label = "Make sure, the primary color is part of the generated shades.",
-                            explanation = "If checked, the selected primary, neutral or accent color will explicitly be part of the list of shades. If unchecked, we will just use the hue and saturation and adjust the luminance accordingly.",
-                        )
+                        content()
                     }
                 }
-                /*tableRow("grid sm:grid-cols-7 lg:grid-cols-5") {
-                    div("col-span-full sm:col-span-2 lg:col-span-1") {
-                        +"Predefined shades"
-                    }
-                    div("col-span-full sm:col-span-5 lg:col-span-4") {
-                        checkbox(
-                            value = modelStore.data.map { it.usePredefinedShades },
-                            handler = modelStore.setUsePredefinedShades,
-                            label = "Use predefined shades",
-                            explanation = "When checked, we will use predefined shades for each color. If unchecked we will simply distribute the shades equally across the all luminance levels."
-                        )
-                    }
-                }*/
-                tableRow("grid sm:grid-cols-7 lg:grid-cols-5") {
-                    div("col-span-full sm:col-span-2 lg:col-span-1") {
-                        +"Shade count"
-                    }
-                    div("col-span-full sm:col-span-5 lg:col-span-4 flex justify-between gap-4") {
+            }
+            div {
+                optionsTableRow("Type of shades") {
+                    radioBoxes(
+                        value = modelStore.data.map { it.shadeType.name },
+                        handler = modelStore.setShadeType,
+                        radioboxes =
+                        ShadeType.entries.map { RadioBox(
+                            name = "ShadeType",
+                            value = it.name,
+                            text = it.title,
+                            description = it.description
+                        ) }.toTypedArray()
+                    )
+                }
+                optionsTableRow("Shade count") {
+                    div("flex justify-between gap-4") {
                         label("block mb-2 text-sm text-gray-900") {
                             `for`("shade-count")
                             modelStore.data.map { it.shadeCount }.renderText(into = this)
