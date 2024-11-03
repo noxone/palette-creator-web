@@ -212,7 +212,7 @@ fun main() {
                     textHandler = modelStore.setPrimaryColor
                 ),
                 // TODO: Button(text = "Enter hex RGB"),
-                Button(text = "Randomize Color", clickHandler = modelStore.randomizePrimaryColor),
+                Button(text = "Use Random Color", clickHandler = modelStore.randomizePrimaryColor),
             ),
             toastConfig = ToastConfig(
                 flow = modelStore.data.map { !it.isPrimaryColorSaturationHighEnough },
@@ -233,9 +233,9 @@ fun main() {
                 """.trimMargin(),
             actions = listOf(
                 Button(text = "Derive from primary", clickHandler = modelStore.deriveNeutralColor),
-                Button(text = "Random warm", clickHandler = modelStore.randomizeWarmNeutralColor),
-                Button(text = "Random cold", clickHandler = modelStore.randomizeColdNeutralColor),
-                Button(text = "Completely random", clickHandler = modelStore.randomizeNeutralColor),
+                Button(text = "Randomize warm", clickHandler = modelStore.randomizeWarmNeutralColor),
+                Button(text = "Randomize cold", clickHandler = modelStore.randomizeColdNeutralColor),
+                Button(text = "Randomize freely", clickHandler = modelStore.randomizeNeutralColor),
             ),
             toastConfig = ToastConfig(
                 flow = modelStore.data.map { !it.isNeutralColorSaturationLowEnough },
@@ -257,7 +257,7 @@ fun main() {
             actions = listOf(
                 Button(
                     // TODO: Disable this button of there are not colors...
-                    text = "Derived from primary color",
+                    text = "Add derived from primary color",
                     floaterElement = {
                         modelStore.data.map { it.proposedAccentColors }
                             .renderEach(idProvider = { "proposedAccentColor_${it.color.hex()}" }) { color ->
