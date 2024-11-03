@@ -37,7 +37,14 @@ fun RenderContext.radioBoxes(
         }
     }
 
-fun RenderContext.radioBox(name: String, value: String, text: String, description: String? = null, flow: Flow<String>, handler: Handler<String>) =
+fun RenderContext.radioBox(
+    name: String,
+    value: String,
+    text: String,
+    description: String? = null,
+    flow: Flow<String>,
+    handler: Handler<String>,
+) =
     div("flex mb-2 last:mb-0") {
         val id = IdGenerator.next
         div("items-center pt-0.5") {
