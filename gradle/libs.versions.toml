@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.0.21"
+kotlin = "2.1.0"
 fritz2 = "1.0-RC19.2"
 tailwind = "3.4.14"
 tailwind-forms = "0.5.9"
