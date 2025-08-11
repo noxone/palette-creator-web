@@ -6,7 +6,7 @@ ARG APP_ENV=local
 #**************************************
 # build stages used by local build only
 #**************************************
-FROM gradle:8.14.1-jdk11 AS temp-build-image
+FROM gradle:9.0.0-jdk21 AS temp-build-image
 WORKDIR /app
 COPY . .
 
@@ -31,7 +31,7 @@ RUN cp -R -v ./build/dist/js/productionExecutable ./build/distributions
 #**************************************
 
 # local build only
-FROM alpine:3.21.3 AS local-postinstall
+FROM alpine:3.22.1 AS local-postinstall
 WORKDIR /app
 RUN apk update \
  && apk add lighttpd \
@@ -39,7 +39,7 @@ RUN apk update \
 COPY --from=temp-build-image /app/build/distributions /var/www/localhost/htdocs
 
 # github action only
-FROM alpine:3.21.3 AS github-postinstall
+FROM alpine:3.22.1 AS github-postinstall
 WORKDIR /app
 RUN apk update \
  && apk add lighttpd \
