@@ -1,3 +1,5 @@
+⚠️ I have decided to close this project and will therefore no longer maintain it. There will be no further updates, fixes or changes. The code will remain available, but I unpublished the website. To further use it, you might want to have look at the [docker images](https://hub.docker.com/r/noxone/shades). ⚠️
+
 # Palette Creator
 
 This projects aims at making it *really* easy for everybody to create a nice looking shades that can be included
